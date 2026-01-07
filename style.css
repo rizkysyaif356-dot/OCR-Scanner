@@ -1,0 +1,771 @@
+:root { 
+    --primary-gold: #f1c40f; 
+    --dark-bg: #1a1a1a; 
+    --success-green: #2ecc71; 
+    --purple: #9b59b6; 
+}
+
+.logout-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999; /* Agar selalu di atas elemen lain */
+    background: rgba(231, 76, 60, 0.15); /* Merah transparan */
+    border: 1px solid #e74c3c;
+    color: #e74c3c;
+    padding: 10px 20px;
+    border-radius: 50px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 14px;
+    backdrop-filter: blur(5px);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 15px rgba(231, 76, 60, 0.2);
+}
+
+.logout-container:hover {
+    background: #e74c3c;
+    color: white;
+    box-shadow: 0 0 25px rgba(231, 76, 60, 0.6);
+    transform: translateY(-2px);
+}
+
+/* Tampilan di HP (Text hilang, cuma ikon biar rapi) */
+@media (max-width: 600px) {
+    .logout-container span {
+        display: none;
+    }
+    .logout-container {
+        padding: 10px;
+        border-radius: 50%; /* Jadi bulat */
+        width: 40px;
+        height: 40px;
+        justify-content: center;
+    }
+}
+
+.forced-full-screen {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    background: radial-gradient(circle, #1a2a44 0%, #0d1117 100%) !important;
+    z-index: 999999 !important; /* Angka sangat tinggi agar pasti di depan */
+    display: flex !important;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(10px);
+}
+
+.welcome-card {
+    background: rgba(255, 255, 255, 0.07);
+    padding: 50px;
+    border-radius: 30px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    text-align: center;
+    min-width: 350px;
+}
+
+.profile-circle {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    border: 3px solid var(--primary-gold);
+    background: #1a1a1a;
+    box-shadow: 0 0 20px rgba(241, 196, 15, 0.4); /* Efek cahaya emas */
+    margin-bottom: 20px;
+    transition: all 0.3s ease;
+}
+
+/* Efek saat mouse mendekat */
+.profile-circle:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 30px rgba(241, 196, 15, 0.6);
+    border-color: #fff;
+}
+
+#welcome-overlay { pointer-events: auto; }
+#welcome-overlay.hidden { pointer-events: none; display: none !important; }
+
+#btn-tugas {
+    background: #e0e7ff;
+    color: #1a1a1a;
+    border: none;
+    padding: 15px 30px;
+    border-radius: 50px;
+    font-weight: bold;
+    width: 100%;
+    cursor: pointer;
+    margin-top: 20px;
+}
+
+/* Style Animasi Loading */
+.progress-bar {
+    width: 100%;
+    height: 6px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 10px;
+    margin: 20px 0;
+    overflow: hidden;
+}
+.progress-fill {
+    width: 40%;
+    height: 100%;
+    background: #3498db;
+    animation: move-loading 1.5s infinite linear;
+}
+@keyframes move-loading {
+    0% { transform: translateX(-150%); }
+    100% { transform: translateX(250%); }
+}
+.header-controls {
+    z-index: 999 !important; /* Pastikan tombol di atas container utama */
+}
+
+.sidebar {
+    z-index: 2000 !important; /* Sidebar harus di atas konten dashboard */
+}
+body { 
+    font-family: 'Segoe UI', sans-serif; 
+    margin: 0; 
+    padding: 0;
+    
+    /* Ganti URL dengan link Imgur Anda */
+    background-image: url('https://i.imgur.com/S594PkR.gif'); 
+    
+    /* INI KUNCI AGAR GAMBAR PENUH & PROPORSIAL */
+    background-size: cover;          /* Gambar akan menutupi seluruh layar */
+    background-position: center !important;     /* Gambar akan dipusatkan (tengah) */
+    background-repeat: no-repeat;    /* Gambar tidak akan diulang/double */
+    background-attachment: fixed;    /* Gambar tetap diam saat di-scroll (efek pro) */
+    
+    /* Agar konten tetap di tengah tanpa merusak background */
+    min-height: 100vh; 
+    width: 100%;
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    
+    color: white; 
+}
+/* Sidebar */
+.sidebar { 
+    position: fixed; 
+    top: 0; 
+    left: -250px; 
+    width: 250px; 
+    height: 100%; 
+    background: var(--dark-bg); 
+    transition: 0.3s; 
+    z-index: 2000; 
+    padding-top: 60px; 
+    box-shadow: 5px 0 15px rgba(0,0,0,0.5); 
+}
+
+.sidebar.active { left: 0; }
+
+.sidebar a { 
+    padding: 15px 25px; 
+    text-decoration: none; 
+    font-size: 16px; 
+    color: #bdc3c7; 
+    display: block; 
+    cursor: pointer; 
+    border-bottom: 1px solid rgba(255,255,255,0.05); 
+}
+
+.sidebar a:hover { 
+    color: var(--primary-gold); 
+    background: rgba(255,255,255,0.05); 
+}
+
+/* Tombol Navigasi dengan Logika Geser */
+.menu-btn { 
+    position: fixed; 
+    top: 20px; 
+    left: 20px; 
+    background: var(--dark-bg); 
+    padding: 10px 15px; 
+    border-radius: 8px; 
+    cursor: pointer; 
+    z-index: 3000; 
+    border: 1px solid rgba(255,255,255,0.1); 
+    transition: 0.3s ease; /* Ditambah transition */
+}
+
+.launch-btn { 
+    position: fixed; 
+    top: 20px; 
+    left: 20px; /* Disamakan dengan menu-btn agar titik gesernya sinkron */
+    margin-left: 100px; /* Memberi jarak dari menu-btn */
+    background: var(--purple); 
+    padding: 10px 15px; 
+    border-radius: 8px; 
+    cursor: pointer; 
+    z-index: 3000; 
+    border: 1px solid rgba(255,255,255,0.2); 
+    font-weight: bold; 
+    font-size: 14px; 
+    transition: 0.3s ease; /* Ditambah transition */
+}
+
+.launch-btn:hover { background: #8e44ad; transform: scale(1.05); }
+
+/* Logika Pergerakan Tombol saat Sidebar Aktif */
+.sidebar.active ~ .launch-btn {
+    transform: translateX(250px);
+}
+
+.container { 
+    width: 95%; 
+    max-width: 1100px; 
+    background: rgba(0, 0, 0, 0.1); 
+    padding: 25px; 
+    border-radius: 20px; 
+    backdrop-filter: blur(5px); 
+    border: 1px solid rgba(255, 255, 255, 0.1); 
+    margin: 20px; 
+}
+
+/* Pastikan ada aturan ini agar saat class active ditambah, section muncul */
+.content-section {
+    display: none; /* Sembunyi secara default */
+}
+
+.content-section.active {
+    display: block !important; /* Muncul saat aktif */
+}
+
+@keyframes fadeIn { 
+    from { opacity: 0; transform: translateY(10px); } 
+    to { opacity: 1; transform: translateY(0); } 
+}
+
+.menu-item.locked {
+    opacity: 0.4;
+    cursor: not-allowed !important;
+    pointer-events: none; /* Mematikan fungsi klik */
+}
+
+/* Section Absensi */
+#absensi-section {
+    text-align: center;
+    padding: 40px;
+}
+
+.btn-absen {
+    background: var(--success-green);
+    color: white;
+    padding: 15px 40px;
+    border-radius: 50px;
+    font-size: 18px;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(46, 204, 113, 0.4);
+}
+/* Split Layout Scanner & History */
+.split-layout { display: flex; gap: 20px; flex-wrap: wrap; }
+.panel { flex: 1; padding: 20px; border-radius: 15px; min-width: 320px; }
+.image-panel { background: rgba(255,255,255,0.1); text-align: center; }
+.history-panel { background: rgba(0,0,0,0.4); border-left: 2px solid var(--primary-gold); }
+
+/* Tabel & List Styles */
+.table-container { overflow-x: auto; margin-top: 20px; }
+table { width: 100%; border-collapse: collapse; background: rgba(255,255,255,0.05); }
+th { background: #1b4d3e; color: #2ecc71; text-align: left; padding: 12px; }
+td { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 13px; }
+
+.btn-copy-table { background: #3498db; color: white; padding: 5px 10px; font-size: 11px; border-radius: 4px; border: none; cursor: pointer; }
+.btn-delete { background: #e74c3c; color: white; width: 100%; margin-top: 10px; font-size: 11px; padding: 8px; border-radius: 5px; border: none; cursor: pointer; }
+
+#historyList { max-height: 350px; overflow-y: auto; padding-right: 5px; }
+#historyList::-webkit-scrollbar { width: 5px; }
+#historyList::-webkit-scrollbar-thumb { background: var(--primary-gold); border-radius: 10px; }
+
+#outputText { font-size: 2.5em; color: var(--primary-gold); font-family: monospace; text-align: center; margin: 15px 0; }
+#uploadedImage { max-width: 100%; border-radius: 10px; display: none; margin: 15px auto; }
+button { cursor: pointer; transition: 0.3s; }
+#copyBtn { background: var(--primary-gold); color: black; display: none; width: 100%; font-weight: bold; padding: 12px; }
+
+/* --- STYLE KHUSUS KALKULATOR REVISI --- */
+.calc-container {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 25px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+.calc-label {
+    display: block;
+    margin-bottom: 10px;
+    font-size: 14px;
+    color: var(--primary-gold);
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.calc-input-field {
+    width: 100%;
+    padding: 15px;
+    border-radius: 12px;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    background: #0d0d0d;
+    color: #2ecc71;
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 25px;
+    box-sizing: border-box;
+    transition: all 0.3s ease;
+}
+
+.calc-input-field:focus {
+    outline: none;
+    border-color: var(--primary-gold);
+    box-shadow: 0 0 10px rgba(241, 196, 15, 0.3);
+}
+
+.calc-select-field {
+    width: 100%;
+    padding: 15px;
+    border-radius: 12px;
+    background: #2c3e50;
+    color: white;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23f1c40f%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 15px top 50%;
+    background-size: 12px auto;
+}
+
+#calcResultsArea {
+    margin-top: 25px;
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: 10px;
+    border-radius: 10px;
+}
+
+#calcResultsArea::-webkit-scrollbar { width: 6px; }
+#calcResultsArea::-webkit-scrollbar-thumb { background: var(--primary-gold); border-radius: 10px; }
+#calcResultsArea::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.05); }
+
+.result-card {
+    background: rgba(0, 0, 0, 0.6);
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    border-left: 4px solid var(--success-green);
+    word-wrap: break-word; 
+    animation: slideIn 0.4s ease-out;
+}
+
+.result-text {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #ecf0f1;
+    white-space: pre-line;
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateX(-10px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+/* --- STYLE CHARACTER DOCK --- */
+.character-dock {
+    width: 95%;
+    max-width: 1100px;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    padding: 15px;
+    margin: 20px auto;
+    text-align: left;
+}
+
+.dock-title {
+    font-size: 14px;
+    font-weight: bold;
+    color: white;
+    margin-bottom: 10px;
+    padding-left: 10px;
+    font-family: 'monospace';
+}
+
+.icon-list {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.icon-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: transform 0.3s ease;
+    cursor: pointer;
+}
+
+.icon-item:hover {
+    transform: translateY(-10px) scale(1.1);
+}
+
+.icon-item img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    border: 2px solid var(--primary-gold);
+    box-shadow: 0 0 10px rgba(241, 196, 15, 0.5);
+    background: #1a1a1a;
+    object-fit: cover;
+}
+
+.icon-item span {
+    margin-top: 8px;
+    font-size: 11px;
+    color: #bdc3c7;
+}
+
+/* Efek saat ikon diklik (Opsional) */
+.icon-item:active img {
+    border-color: var(--success-green);
+    box-shadow: 0 0 15px var(--success-green);
+}
+
+body {
+    transition: background-image 0.5s ease-in-out; /* Perpindahan background jadi halus */
+    /* ... style body lainnya tetap ... */
+}
+
+/* Tambahkan sedikit style untuk menandakan ikon sedang aktif */
+.icon-item img {
+    transition: all 0.3s ease;
+}
+
+.icon-item:active img {
+    transform: scale(0.9); /* Efek membal saat diklik */
+}
+
+/* --- TAMBAHAN UNTUK SISTEM LOCK --- */
+.menu-item.locked {
+    opacity: 0.3;              /* Membuat teks terlihat redup */
+    pointer-events: none;      /* Mencegah menu diklik */
+    cursor: not-allowed;       /* Ubah kursor jadi tanda dilarang */
+    filter: grayscale(100%);   /* Membuat ikon jadi hitam putih */
+}
+
+/* Tombol close di sidebar (tambahan agar rapi) */
+.closebtn {
+    position: absolute;
+    top: 0;
+    right: 25px;
+    font-size: 36px;
+    margin-left: 50px;
+    text-decoration: none;
+    color: #818181;
+}
+
+/* --- STYLE LOGIN PRO --- */
+
+.input-group {
+    position: relative;
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.input-group i {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--primary-gold);
+}
+
+.input-group input {
+    width: 100%;
+    padding: 15px 15px 15px 45px; /* Padding kiri besar untuk ikon */
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 50px;
+    color: white;
+    font-family: 'Segoe UI', sans-serif;
+    outline: none;
+    transition: all 0.3s ease;
+    box-sizing: border-box; /* Agar padding tidak merusak lebar */
+}
+
+.input-group input:focus {
+    border-color: var(--primary-gold);
+    background: rgba(0, 0, 0, 0.5);
+    box-shadow: 0 0 15px rgba(241, 196, 15, 0.2);
+}
+
+.input-group input::placeholder {
+    color: rgba(255, 255, 255, 0.3);
+}
+
+/* Animasi Error (Goyang) */
+@keyframes shake {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(-10px); }
+    50% { transform: translateX(10px); }
+    75% { transform: translateX(-10px); }
+    100% { transform: translateX(0); }
+}
+
+.error-shake {
+    animation: shake 0.4s ease-in-out;
+    border: 1px solid #e74c3c !important;
+    box-shadow: 0 0 10px #e74c3c !important;
+}
+
+/* --- PENYESUAIAN MOBILE (HP) --- */
+@media screen and (max-width: 768px) {
+    /* 1. Atur Ulang Body */
+    body {
+        padding: 10px;
+        align-items: flex-start; /* Agar konten tidak terlalu ke tengah vertikal di HP */
+        padding-top: 50px;
+    }
+
+    /* 2. Welcome Card (Halaman Login) */
+    .welcome-card {
+        min-width: 90%; /* Biar kotak login tidak kepotong */
+        padding: 30px 20px;
+        margin: 0 10px;
+    }
+
+    .welcome-text {
+        font-size: 1.5rem;
+    }
+
+    /* 3. Container Utama Dashboard */
+    .container {
+        width: 95% !important;
+        padding: 15px;
+        margin-top: 20px;
+    }
+
+    /* 4. Sidebar (Menu Samping) */
+    .sidebar {
+        width: 100% !important; /* Sidebar full screen saat dibuka di HP */
+        left: -100%; /* Sembunyikan jauh ke kiri */
+    }
+
+    .sidebar.active {
+        left: 0;
+    }
+
+    /* 5. Grid Ikon (Karakter/Background) */
+    .icons-grid {
+        grid-template-columns: repeat(3, 1fr) !important; /* 3 kolom saja di HP */
+        gap: 10px;
+    }
+
+    .icon-item img {
+        width: 50px;
+        height: 50px;
+    }
+
+    /* 6. Tombol-Tombol */
+    button {
+        width: 100% !important; /* Tombol jadi full lebar di HP agar mudah diklik jempol */
+        font-size: 14px;
+        padding: 12px;
+    }
+
+    /* 7. Hasil OCR & Textarea */
+    textarea {
+        font-size: 14px;
+        height: 150px;
+    }
+
+    .menu-toggle {
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    z-index: 1000;
+    background: var(--primary-gold);
+    color: black;
+    padding: 10px;
+    border-radius: 5px;
+}
+}
+
+@media (hover: none) {
+    .menu-item:hover {
+        transform: none; /* Hilangkan animasi angkat saat disentuh */
+    }
+}
+
+/* Container Chat */
+#ai-chat-widget {
+    position: fixed;
+    bottom: 20px;
+    left: 20px; /* Posisi sudut kiri bawah */
+    z-index: 10000;
+}
+
+/* Tombol Melayang */
+#ai-chat-button {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: var(--primary-gold);
+    border: none;
+    color: black;
+    font-size: 24px;
+    cursor: pointer;
+    box-shadow: 0 0 20px rgba(241, 196, 15, 0.5);
+    transition: transform 0.3s;
+}
+
+#ai-chat-button:hover { transform: scale(1.1) rotate(10deg); }
+
+/* Jendela Chat */
+#ai-chat-window {
+    position: absolute;
+    bottom: 80px;
+    left: 0;
+    width: 320px;
+    height: 450px;
+    background: rgba(26, 26, 26, 0.9);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.chat-hidden {
+    opacity: 0;
+    transform: translateY(20px) scale(0.9);
+    pointer-events: none;
+}
+
+.chat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(241, 196, 15, 0.2);
+    padding: 12px 15px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px; /* Jarak antara ikon sampah dan tombol X */
+}
+
+/* Gaya khusus tombol hapus */
+.btn-delete-all {
+    cursor: pointer;
+    color: #e74c3c; /* Warna merah agar terlihat kontras */
+    font-size: 16px;
+    transition: transform 0.2s, color 0.2s;
+}
+
+.btn-delete-all:hover {
+    color: #ff5e4d;
+    transform: scale(1.2);
+}
+
+.close-chat {
+    cursor: pointer;
+    font-size: 24px;
+    color: white;
+    line-height: 1;
+}
+
+/* --- PERBAIKAN PADA CONTAINER PESAN --- */
+#chat-messages {
+    flex: 1;
+    padding: 15px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column; /* Mengatur pesan berurutan ke bawah */
+    gap: 12px;
+    background: rgba(0, 0, 0, 0.2); /* Memberi kesan kedalaman pada area chat */
+}
+
+/* --- GAYA BUBBLE CHAT (MODERN) --- */
+.note-bubble {
+    align-self: flex-end; /* Membuat bubble menempel di kanan */
+    max-width: 85%;
+    background: linear-gradient(135deg, var(--primary-gold), #d4ac0d);
+    color: #1a1a1a;
+    padding: 10px 15px;
+    border-radius: 18px 18px 2px 18px; /* Bentuk ekor bubble di pojok kanan bawah */
+    position: relative;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    animation: bubbleAppear 0.3s ease-out;
+    word-wrap: break-word;
+}
+
+/* Konten teks di dalam bubble */
+.note-content {
+    display: block;
+    font-size: 13px;
+    line-height: 1.5;
+    font-weight: 500;
+}
+
+/* Waktu dan Ikon Centang */
+.note-meta {
+    display: block;
+    font-size: 9px;
+    text-align: right;
+    margin-top: 5px;
+    opacity: 0.8;
+    font-style: italic;
+}
+
+/* Animasi halus saat catatan muncul */
+@keyframes bubbleAppear {
+    from { opacity: 0; transform: translateY(10px) scale(0.95); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Scrollbar khusus untuk area chat agar tetap estetik */
+#chat-messages::-webkit-scrollbar {
+    width: 5px;
+}
+#chat-messages::-webkit-scrollbar-thumb {
+    background: var(--primary-gold);
+    border-radius: 10px;
+}
+
+
+
+.chat-input-area input {
+    flex: 1;
+    background: rgba(255,255,255,0.05);
+    border: 5px solid rgba(255,255,255,0.1);
+    border-radius: 30px;
+    padding: 8px 50px;
+    color: white;
+}
+
+.fa-spin {
+    animation: fa-spin 1s infinite linear;
+}
+
+@keyframes fa-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
