@@ -1,4 +1,4 @@
-    const GAS_URL = 'https://script.google.com/macros/s/AKfycbz3-kCjEw6j375TrxGhwGE0J7A9lmJ54kgJc7MvSSpVk4DBSuWg84pstpZFV4LBF32h/exec';
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycbwzQbS_lRWpM3VW5JJgLmo7cCBktdQcleDVadu6ymk_t_AFnnfOCcLkg79SWWg9w3BF/exec';
     const API_KEY ="AIzaSyASnvHC0RaGATr5hKAadn8ySoXbAIpebNc";
 
     function toggleSidebar() { document.getElementById("mySidebar").classList.toggle("active"); }
@@ -22,6 +22,7 @@ function showSection(id) {
     if(sidebar.classList.contains('active')) toggleSidebar();
     
     if (id === 'pelengkap') fetchPelengkap();
+    if (id === 'kesalahan') fetchKesalahan();
     
     if (window.innerWidth <= 768) {
         document.getElementById("mySidebar").classList.remove("active");
@@ -300,6 +301,40 @@ async function fetchPelengkap() {
         });
     } catch (e) { 
         tableBody.innerHTML = "<tr><td colspan='3' style='text-align:center;color:red'>Gagal koneksi Cloud.</td></tr>"; 
+    }
+}
+
+// --- FETCH KESALAHAN OPERASIONAL (DATA DARI SHEET BERBEDA) ---
+async function fetchKesalahan() {
+    document.getElementById('searchKesalahan').value = "";
+    const tableBody = document.getElementById('kesalahanTableBody');
+    tableBody.innerHTML = "<tr><td colspan='4' style='text-align:center'>Mengambil data...</td></tr>";
+    
+    try {
+        const response = await fetch(GAS_URL + "?type=kesalahan&t=" + new Date().getTime());
+        const data = await response.json();
+        
+        tableBody.innerHTML = "";
+        
+        data.forEach(item => {
+            const ssContent = item.ss ? item.ss.toString() : "";
+            
+            tableBody.innerHTML += `
+            <tr style="font-size: 11px;">
+                <td>${item.tanggal || '-'}</td>
+                <td>${item.nama || '-'}</td>
+                <td style="text-align: center;">
+                    ${ssContent ? `
+                        <button class="btn-copy-table" onclick="copyText(\`${ssContent.replace(/"/g, '&quot;')}\`, this)">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    ` : '-'}
+                </td>
+                <td style="color: var(--primary-gold); font-weight: bold;">${item.jenis || '-'}</td>
+                </tr>`;
+        });
+    } catch (e) { 
+        tableBody.innerHTML = `<tr><td colspan='4' style='text-align:center;color:#e74c3c'>Gagal: ${e.message}</td></tr>`; 
     }
 }
     // --- LOGIKA OCR ---
@@ -886,6 +921,30 @@ async function handleLogout() {
             console.error("Gagal Logout:", error);
             // Tetap logout meski internet error (Opsional)
             window.location.href = "auth.html";
+        }
+    }
+}
+
+function globalFilterKesalahan() {
+    // 1. Ambil kata kunci pencarian
+    const input = document.getElementById("searchKesalahan");
+    const filter = input.value.toLowerCase();
+    const table = document.getElementById("kesalahanTableBody");
+    const tr = table.getElementsByTagName("tr");
+
+    // 2. Loop melalui setiap baris tabel
+    for (let i = 0; i < tr.length; i++) {
+        // Lewati jika baris menampilkan pesan "Menunggu data" atau "Data Kosong"
+        if (tr[i].cells.length < 4) continue; 
+
+        // Ambil semua teks dari baris tersebut (Tanggal + Nama + Link + Jenis)
+        const rowText = tr[i].textContent || tr[i].innerText;
+        
+        // 3. Jika kata kunci ditemukan di bagian mana saja dalam baris tersebut
+        if (rowText.toLowerCase().indexOf(filter) > -1) {
+            tr[i].style.display = ""; // Tampilkan
+        } else {
+            tr[i].style.display = "none"; // Sembunyikan
         }
     }
 }
