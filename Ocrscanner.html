@@ -31,6 +31,7 @@
     <a onclick="showSection('scanner')" class="menu-item locked">🏠 Dashboard Scanner</a>
     <a onclick="showSection('pelengkap')" class="menu-item locked">🛠️ Pelengkap Operasional</a>
     <a onclick="showSection('kalkulator')" class="menu-item locked">🧮 Kalkulator Cepat</a>
+    <a onclick="showSection('kesalahan')" class="menu-item locked">⚠️ Kesalahan Operasional</a>
 </div>
     
 
@@ -128,6 +129,40 @@
             </div>
         </div>
     </section>
+
+<section id="kesalahan" class="content-section">
+    <div class="container">
+        <h2>⚠️ Data Kesalahan Operasional</h2>
+        
+        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+    <button onclick="fetchKesalahan()" style="background: #e74c3c; color: white; font-size: 12px; padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer;">
+        <i class="fas fa-sync-alt"></i> Refresh
+    </button>
+    
+    <div style="position: relative; flex-grow: 1;">
+        <i class="fas fa-search" style="position: absolute; left: 10px; top: 11px; color: #888; font-size: 12px;"></i>
+        <input type="text" id="searchKesalahan" onkeyup="globalFilterKesalahan()" placeholder="Cari nama, tanggal, atau jenis..." 
+            style="width: 89%; padding: 8px 10px 8px 30px; border-radius: 4px; border: 1px solid #444; background: #222; color: white; font-size: 13px;">
+    </div>
+</div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th width="25%">Tanggal</th>
+                        <th width="30%">Nama Staff</th>
+                        <th width="15%">Link</th>
+                        <th width="30%">Jenis Kesalahan</th>
+                    </tr>
+                </thead>
+                <tbody id="kesalahanTableBody">
+                    <tr><td colspan="4" style="text-align:center">Menunggu data...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section> 
 
 <section id="kalkulator" class="content-section">
     <div class="container" style="max-width: 550px;">
