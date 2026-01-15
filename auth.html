@@ -1,0 +1,767 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OCR Pro Cloud Sync</title>
+
+    <!-- FONT + ICON (AMAN UNTUK CSP) -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        /* ==========================================================
+           GLOBAL BASE – WARNA & NUANSA SAMA SEPERTI LOGIN ULTRA PREMIUM
+           ========================================================== */
+        * {
+            box-sizing: border-box;
+            margin: 0;  
+            padding: 0;
+        }
+        html, body {
+            height: 100%;
+            font-family: 'Orbitron', sans-serif;
+            overflow: hidden;
+        }
+
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background:
+                radial-gradient(circle at 10% 0%, #141a2a 0, #02030a 55%, #000 100%);
+            color: #fff;
+            position: relative;
+        }
+
+        /* Hologram global seperti login */
+        .global-holo {
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(circle at 20% 15%, rgba(120,180,255,.28), transparent 60%),
+                radial-gradient(circle at 80% 65%, rgba(180,220,255,.24), transparent 60%),
+                radial-gradient(circle at 50% 100%, rgba(130,160,255,.23), transparent 70%);
+            mix-blend-mode: screen;
+            filter: blur(140px);
+            animation: holoMove 22s infinite alternate ease-in-out;
+            z-index: -4;
+        }
+        @keyframes holoMove {
+            0%   { transform: translate(-80px,-60px) scale(1); }
+            50%  { transform: translate(90px,40px) scale(1.15); }
+            100% { transform: translate(-40px,30px) scale(1); }
+        }
+
+        /* Grid halus di belakang (digital mesh) */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                radial-gradient(circle, rgba(120,150,255,0.14) 1px, transparent 1px);
+            background-size: 42px 42px;
+            opacity: .25;
+            animation: gridmove 26s linear infinite;
+            z-index: -5;
+        }
+        @keyframes gridmove {
+            from { transform: translateY(0); }
+            to   { transform: translateY(42px); }
+        }
+
+        /* Orbs neon (bola energi) */
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(14px);
+            opacity: 0.55;
+            mix-blend-mode: screen;
+            z-index: -3;
+        }
+        .orb.o1 {
+            width: 120px; height: 120px;
+            background: radial-gradient(circle,#70c0ff,#356dff);
+            top: 10%; left: 8%;
+            animation: orbFloat1 18s infinite ease-in-out;
+        }
+        .orb.o2 {
+            width: 170px; height: 170px;
+            background: radial-gradient(circle,#f5f5ff,#7b8cff);
+            bottom: 10%; right: 10%;
+            animation: orbFloat2 20s infinite ease-in-out;
+        }
+        .orb.o3 {
+            width: 90px; height: 90px;
+            background: radial-gradient(circle,#64ffd8,#2fb0b3);
+            bottom: 18%; left: 20%;
+            animation: orbFloat3 16s infinite ease-in-out;
+        }
+        @keyframes orbFloat1 {
+            0%   { transform: translate3d(0,0,0); }
+            50%  { transform: translate3d(30px,40px,0); }
+            100% { transform: translate3d(-10px,20px,0); }
+        }
+        @keyframes orbFloat2 {
+            0%   { transform: translate3d(0,0,0); }
+            50%  { transform: translate3d(-30px,-35px,0); }
+            100% { transform: translate3d(10px,-15px,0); }
+        }
+        @keyframes orbFloat3 {
+            0%   { transform: translate3d(0,0,0); }
+            50%  { transform: translate3d(15px,-25px,0); }
+            100% { transform: translate3d(-20px,-10px,0); }
+        }
+
+        /* Bintang-bintang kecil */
+        .spark-layer {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: -2;
+        }
+        .spark {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: #ffffff;
+            border-radius: 50%;
+            opacity: 0;
+            box-shadow: 0 0 8px rgba(255,255,255,.8);
+            animation: sparkFloat 9s infinite ease-in-out;
+        }
+        @keyframes sparkFloat {
+            0%   { opacity: 0; transform: translateY(20px) scale(.4); }
+            35%  { opacity: 1; }
+            100% { opacity: 0; transform: translateY(-130px) scale(1); }
+        }
+                .spark:nth-child(1){
+            left:36%;
+            top:82%;
+            animation-delay:0.2s;
+        }
+                .spark:nth-child(2){
+            left:11%;
+            top:1%;
+            animation-delay:1.2s;
+        }
+                .spark:nth-child(3){
+            left:70%;
+            top:20%;
+            animation-delay:5.1s;
+        }
+                .spark:nth-child(4){
+            left:70%;
+            top:0%;
+            animation-delay:2.1s;
+        }
+                .spark:nth-child(5){
+            left:47%;
+            top:43%;
+            animation-delay:10.7s;
+        }
+                .spark:nth-child(6){
+            left:55%;
+            top:46%;
+            animation-delay:7.9s;
+        }
+                .spark:nth-child(7){
+            left:16%;
+            top:49%;
+            animation-delay:8.1s;
+        }
+                .spark:nth-child(8){
+            left:94%;
+            top:33%;
+            animation-delay:7.2s;
+        }
+                .spark:nth-child(9){
+            left:69%;
+            top:17%;
+            animation-delay:6.7s;
+        }
+                .spark:nth-child(10){
+            left:74%;
+            top:24%;
+            animation-delay:11s;
+        }
+                .spark:nth-child(11){
+            left:80%;
+            top:1%;
+            animation-delay:9s;
+        }
+                .spark:nth-child(12){
+            left:40%;
+            top:5%;
+            animation-delay:6.4s;
+        }
+                .spark:nth-child(13){
+            left:68%;
+            top:45%;
+            animation-delay:2.3s;
+        }
+                .spark:nth-child(14){
+            left:11%;
+            top:71%;
+            animation-delay:7.3s;
+        }
+                .spark:nth-child(15){
+            left:60%;
+            top:25%;
+            animation-delay:9.1s;
+        }
+                .spark:nth-child(16){
+            left:87%;
+            top:66%;
+            animation-delay:2.7s;
+        }
+                .spark:nth-child(17){
+            left:41%;
+            top:67%;
+            animation-delay:6.7s;
+        }
+                .spark:nth-child(18){
+            left:86%;
+            top:63%;
+            animation-delay:7.9s;
+        }
+                .spark:nth-child(19){
+            left:53%;
+            top:0%;
+            animation-delay:9s;
+        }
+                .spark:nth-child(20){
+            left:53%;
+            top:62%;
+            animation-delay:7.8s;
+        }
+                .spark:nth-child(21){
+            left:17%;
+            top:47%;
+            animation-delay:4.2s;
+        }
+                .spark:nth-child(22){
+            left:78%;
+            top:11%;
+            animation-delay:1.2s;
+        }
+                .spark:nth-child(23){
+            left:66%;
+            top:97%;
+            animation-delay:0.3s;
+        }
+                .spark:nth-child(24){
+            left:3%;
+            top:42%;
+            animation-delay:9.9s;
+        }
+                .spark:nth-child(25){
+            left:93%;
+            top:20%;
+            animation-delay:6.4s;
+        }
+                .spark:nth-child(26){
+            left:94%;
+            top:64%;
+            animation-delay:9.4s;
+        }
+                .spark:nth-child(27){
+            left:63%;
+            top:34%;
+            animation-delay:7.7s;
+        }
+                .spark:nth-child(28){
+            left:26%;
+            top:27%;
+            animation-delay:7.7s;
+        }
+                .spark:nth-child(29){
+            left:85%;
+            top:10%;
+            animation-delay:9.1s;
+        }
+                .spark:nth-child(30){
+            left:68%;
+            top:47%;
+            animation-delay:0.7s;
+        }
+                .spark:nth-child(31){
+            left:24%;
+            top:60%;
+            animation-delay:9.9s;
+        }
+                .spark:nth-child(32){
+            left:52%;
+            top:98%;
+            animation-delay:3.3s;
+        }
+                .spark:nth-child(33){
+            left:42%;
+            top:31%;
+            animation-delay:8s;
+        }
+                .spark:nth-child(34){
+            left:69%;
+            top:22%;
+            animation-delay:3.2s;
+        }
+                .spark:nth-child(35){
+            left:24%;
+            top:34%;
+            animation-delay:11.6s;
+        }
+                .spark:nth-child(36){
+            left:17%;
+            top:5%;
+            animation-delay:5.7s;
+        }
+                .spark:nth-child(37){
+            left:28%;
+            top:22%;
+            animation-delay:8.7s;
+        }
+                .spark:nth-child(38){
+            left:81%;
+            top:62%;
+            animation-delay:9s;
+        }
+                .spark:nth-child(39){
+            left:76%;
+            top:48%;
+            animation-delay:1.5s;
+        }
+                .spark:nth-child(40){
+            left:33%;
+            top:59%;
+            animation-delay:10.1s;
+        }
+        
+        /* ==========================================================
+           WELCOME CARD – DIAMOND GLASS, SAMA NUANSA DENGAN LOGIN
+           ========================================================== */
+        .welcome-container {
+            position: relative;
+            z-index: 1;
+            width: 420px;
+            padding: 34px 30px 32px;
+            border-radius: 26px;
+
+            background: linear-gradient(
+                145deg,
+                rgba(10,12,22,0.92),
+                rgba(18,22,36,0.96)
+            );
+            border: 1px solid rgba(190,210,255,.45);
+            outline: 1px solid rgba(255,255,255,.06);
+
+            box-shadow:
+                0 26px 70px rgba(0,0,0,.9),
+                0 0 38px rgba(130,160,255,.36),
+                inset 0 0 26px rgba(255,255,255,.04);
+
+            backdrop-filter: blur(28px) saturate(185%);
+            text-align: center;
+            animation: fadeUp 1.1s ease-out both;
+            overflow: hidden;
+        }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(60px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* rotating light sweep di card */
+        .welcome-container::before {
+            content: "";
+            position: absolute;
+            inset: -40%;
+            background:
+                conic-gradient(from 0deg,
+                    rgba(255,255,255,.18),
+                    transparent 12%,
+                    transparent 40%,
+                    rgba(140,190,255,.25),
+                    transparent 64%,
+                    transparent 88%,
+                    rgba(255,255,255,.22)
+                );
+            opacity: .16;
+            mix-blend-mode: screen;
+            transform-origin: center;
+            animation: spinLight 18s linear infinite;
+        }
+        @keyframes spinLight {
+            0%   { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* inner panel */
+        .welcome-inner {
+            position: relative;
+            border-radius: 20px;
+            padding: 24px 18px 20px;
+            background:
+                radial-gradient(circle at 10% 0%,rgba(255,255,255,.11),transparent 60%),
+                rgba(6,10,22,.88);
+            box-shadow:
+                inset 0 0 24px rgba(0,0,0,.85),
+                0 0 18px rgba(120,160,255,.25);
+        }
+
+        /* Dekorasi icon di sudut */
+        .welcome-container i.dec {
+            position: absolute;
+            font-size: 42px;
+            opacity: 0.10;
+            color: #ffffff;
+            text-shadow: 0 0 20px rgba(170,200,255,.6);
+            animation: floatDec 7s ease-in-out infinite alternate;
+        }
+        @keyframes floatDec {
+            0%   { transform: translateY(0); }
+            100% { transform: translateY(14px); }
+        }
+        .welcome-container i.dec1 { top: 14px; left: 18px; }
+        .welcome-container i.dec2 { bottom: 20px; right: 18px; }
+        .welcome-container i.dec3 { bottom: 18px; left: 40%; font-size: 34px; }
+
+        /* Profile avatar */
+        .profile-img {
+            width: 140px;
+            height: 140px;
+            margin: 0 auto 18px;
+            border-radius: 50%;
+            background: radial-gradient(circle,#03121f,#020814);
+            border: 3px solid #7fd4ff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 60px;
+            color: #7ee7ff;
+            box-shadow:
+                0 0 18px rgba(120,200,255,.8),
+                0 0 40px rgba(80,140,255,.65);
+            opacity: 0;
+            transform: scale(.65);
+            transition: .8s;
+            overflow: hidden;
+            position: relative;
+        }
+        .profile-img.show {
+            opacity: 1;
+            transform: scale(1);
+        }
+        .profile-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+        .profile-img::after {
+            content: '';
+            position: absolute;
+            width: 130%;
+            height: 210%;
+            background: linear-gradient(
+                to bottom,
+                transparent 40%,
+                rgba(120,210,255,0.45) 50%,
+                transparent 60%
+            );
+            top: -120%;
+            animation: holoScan 3.2s linear infinite;
+            mix-blend-mode: screen;
+        }
+        @keyframes holoScan {
+            from { top: -120%; }
+            to   { top: 120%; }
+        }
+
+        /* Text animasi */
+        h2, p {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: .8s;
+        }
+        h2.show, p.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        h2 {
+            color: #e9f2ff;
+            font-size: 22px;
+            margin-bottom: 6px;
+            text-shadow:
+                0 0 14px rgba(130,190,255,1),
+                0 0 22px rgba(50,110,255,.8);
+        }
+        h2 i {
+            color: #8fd4ff;
+            margin-right: 6px;
+        }
+
+        p {
+            color: #cdd7ff;
+            font-size: 13px;
+            margin: 3px 0;
+            text-shadow: 0 0 6px rgba(80,140,255,0.6);
+        }
+        p i {
+            margin-right: 6px;
+            color: #9bd4ff;
+        }
+
+        /* Tombol mulai – platinum neon */
+        .start-btn {
+            margin-top: 26px;
+            padding: 13px 30px;
+            border: none;
+            border-radius: 999px;
+            background: linear-gradient(135deg,#fefeff,#e6ebff,#cfd8ff,#fdfdff);
+            background-size: 260%;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #10121c;
+            box-shadow:
+                0 16px 36px rgba(0,0,0,.9),
+                0 0 30px rgba(170,210,255,.9),
+                inset 0 1px 0 rgba(255,255,255,.9);
+            background-position: 0% 50%;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: .8s;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+        }
+        .start-btn.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .start-btn i {
+            margin-right: 8px;
+            color: #274cff;
+        }
+        .start-btn:hover {
+            background-position: 100% 50%;
+            transform: translateY(-2px) scale(1.04);
+            box-shadow:
+                0 20px 40px rgba(0,0,0,.95),
+                0 0 40px rgba(190,215,255,1);
+        }
+        .start-btn:active {
+            transform: translateY(0) scale(.99);
+        }
+
+        /* Overlay transisi */
+        .transition-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: radial-gradient(circle, rgba(120,190,255,0.25), #02030a);
+            z-index: 999;
+            opacity: 0;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .transition-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+            animation: overlayFade 2s forwards;
+        }
+        @keyframes overlayFade {
+            0%   { opacity: 0; }
+            50%  { opacity: 1; }
+            100% { opacity: 1; }
+        }
+
+        .loading-text {
+            color: #e4eeff;
+            font-size: 20px;
+            margin-top: 16px;
+            text-shadow:
+                0 0 16px rgba(130,190,255,1),
+                0 0 26px rgba(70,120,255,.9);
+            animation: blink 1s infinite alternate;
+        }
+        .loading-text i {
+            margin-right: 8px;
+            color: #9fd0ff;
+        }
+        @keyframes blink {
+            from { opacity: 1; }
+            to   { opacity: .5; }
+        }
+
+        .scan-line {
+            width: 70%;
+            max-width: 520px;
+            height: 4px;
+            border-radius: 999px;
+            background: linear-gradient(90deg,transparent,#9fd6ff,transparent);
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 0 18px rgba(150,200,255,.95);
+        }
+        .scan-line::before {
+            content: "";
+            position: absolute;
+            width: 40%;
+            height: 100%;
+            background: linear-gradient(90deg,transparent,#ffffff,transparent);
+            animation: scan 1.6s linear infinite;
+        }
+        @keyframes scan {
+            from { transform: translateX(-120%); }
+            to   { transform: translateX(220%); }
+        }
+
+        /* Responsive */
+        @media (max-width: 520px) {
+            .welcome-container {
+                width: calc(100% - 32px);
+                padding: 26px 18px 26px;
+            }
+        }
+    </style>
+
+</head>
+<body>
+
+<div class="global-holo"></div>
+
+<div class="spark-layer">
+            <div class="spark"></div>
+            <div class="spark"></div>
+            <div class="spark"></div>
+            <div class="spark"></div>
+            <div class="spark"></div>
+            <div class="spark"></div>
+            <div class="spark"></div>
+            <div class="spark"></div>
+            <div class="spark"></div>
+            <div class="spark"></div>
+            <div class="spark"></div>
+            <div class="spark"></div>
+            <div class="spark"></div>
+            <div class="spark"></div>
+            <div class="spark"></div>
+            <div class="spark"></div>
+            <div class="spark"></div>
+            <div class="spark"></div>
+            <div class="spark"></div>
+            <div class="spark"></div>
+            <div class="spark"></div>
+            <div class="spark"></div>
+            <div class="spark"></div>
+            <div class="spark"></div>
+            <div class="spark"></div>
+            <div class="spark"></div>
+            <div class="spark"></div>
+            <div class="spark"></div>
+            <div class="spark"></div>
+            <div class="spark"></div>
+            <div class="spark"></div>
+            <div class="spark"></div>
+            <div class="spark"></div>
+            <div class="spark"></div>
+            <div class="spark"></div>
+            <div class="spark"></div>
+            <div class="spark"></div>
+            <div class="spark"></div>
+            <div class="spark"></div>
+            <div class="spark"></div>
+    </div>
+
+<div class="orb o1"></div>
+<div class="orb o2"></div>
+<div class="orb o3"></div>
+
+<div class="welcome-container">
+    <!-- dekorasi icon futuristik -->
+    <i class="fa-solid fa-shield-halved dec dec1"></i>
+    <i class="fa-solid fa-network-wired dec dec2"></i>
+    <i class="fa-solid fa-circle-nodes dec dec3"></i>
+
+    <div class="welcome-inner">
+    <div class="profile-img" id="profile"> R </div>
+    
+    <h2 id="welcome"><i class="fas fa-user-astronaut"></i> Selamat Datang</h2>
+    
+    <p id="name"><i class="fas fa-id-badge"></i> RIZKY SYAIFULLAH</p>
+    <p id="ready"><i class="fas fa-rocket"></i> Siap bertugas hari ini?</p>
+    <p id="display-date"><i class="fas fa-calendar-day"></i> ---</p>
+
+    <button class="start-btn" id="startBtn">
+        <i class="fas fa-play"></i> Mulai Bertugas
+    </button>
+</div>
+</div>
+
+<div class="transition-overlay" id="overlay">
+    <div class="scan-line"></div>
+    <div class="loading-text">
+        <i class="fa-solid fa-satellite-dish"></i>
+        Menghubungkan ke Dashboard...
+    </div>
+</div>
+
+<script>
+    window.addEventListener('load', () => {
+        // 1. Update Tanggal Real-time
+        const dateEl = document.getElementById('display-date');
+        if (dateEl) {
+            const now = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            dateEl.innerHTML = `<i class="fas fa-calendar-day"></i> ${now.toLocaleDateString('id-ID', options)}`;
+        }
+
+        // 2. Animasi Masuk (Hanya jalankan jika elemen ditemukan)
+        const delay = 450;
+        const items = ['profile', 'welcome', 'name', 'ready', 'display-date', 'startBtn'];
+        
+        items.forEach((id, i) => {
+            setTimeout(() => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.classList.add('show');
+                } else {
+                    console.warn("Elemen dengan ID '" + id + "' tidak ditemukan.");
+                }
+            }, delay * (i + 1));
+        });
+
+        // 3. Logika Tombol Mulai
+        const btn = document.getElementById('startBtn');
+        const overlay = document.getElementById('overlay');
+
+        if (btn) {
+            btn.addEventListener('click', e => {
+                e.preventDefault();
+                
+                // Efek menghilang
+                document.querySelectorAll('.welcome-inner *').forEach((el) => {
+                    el.style.opacity = 0;
+                    el.style.transform = 'scale(0.9) translateY(-20px)';
+                });
+
+                // Aktifkan overlay transisi
+                if (overlay) overlay.classList.add('active');
+
+                // PINDAH KE HALAMAN DASHBOARD (PASTIKAN NAMA FILE BENAR)
+                setTimeout(() => {
+                    window.location.href = "Ocrscanner.html#absensi";
+                }, 2000);
+            });
+        }
+    });
+</script>
+
+</body>
+</html>
