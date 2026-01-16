@@ -23,7 +23,9 @@ function showSection(id) {
     
     if (id === 'pelengkap') fetchPelengkap();
     if (id === 'kesalahan') fetchKesalahan();
-    
+    if (id !== 'togel') {
+        document.getElementById('pasaranSelect').value = "";
+    }
     if (window.innerWidth <= 768) {
         document.getElementById("mySidebar").classList.remove("active");
     }
@@ -947,4 +949,57 @@ function globalFilterKesalahan() {
             tr[i].style.display = "none"; // Sembunyikan
         }
     }
+}
+
+function generateTogel() {
+    const pasaran = document.getElementById('pasaranSelect').value;
+    const tableBody = document.getElementById('togelTableBody');
+    
+    if (!pasaran) {
+        tableBody.innerHTML = '<tr><td colspan="3" style="text-align:center; color: #888;">Silahkan pilih pasaran di atas...</td></tr>';
+        return;
+    }
+
+    // Fungsi pembantu generate angka unik (tidak kembar untuk BBFS)
+    const getUniqueNumbers = (count) => {
+        let nums = [];
+        while(nums.length < count){
+            let r = Math.floor(Math.random() * 10);
+            if(nums.indexOf(r) === -1) nums.push(r);
+        }
+        return nums.join('');
+    };
+
+    // Fungsi generate angka (boleh kembar untuk 4D/3D/2D)
+    const getRandomDigits = (count) => {
+        let res = "";
+        for(let i=0; i<count; i++) res += Math.floor(Math.random() * 10);
+        return res;
+    };
+
+    // Data Prediksi
+    const dataPrediksi = [
+        { tipe: "BBFS", angka: getUniqueNumbers(6) },
+        { tipe: "4D Jitu", angka: getRandomDigits(4) },
+        { tipe: "3D Jitu", angka: getRandomDigits(3) },
+        { tipe: "2D Belakang", angka: getRandomDigits(2) },
+        { tipe: "Colok Bebas", angka: Math.floor(Math.random() * 10) }
+    ];
+
+    // Render ke Tabel
+    tableBody.innerHTML = "";
+    dataPrediksi.forEach(item => {
+        tableBody.innerHTML += `
+        <tr>
+            <td style="font-weight: bold; color: #bdc3c7;">${item.tipe}</td>
+            <td style="color: var(--primary-gold); font-family: 'Courier New', monospace; font-size: 18px; letter-spacing: 2px; font-weight: bold;">
+                ${item.angka}
+            </td>
+            <td style="text-align: center;">
+                <button class="btn-copy-table" onclick="copyText('${item.angka}', this)">
+                    <i class="fas fa-copy"></i>
+                </button>
+            </td>
+        </tr>`;
+    });
 }
