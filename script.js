@@ -960,7 +960,7 @@ function generateTogel() {
         return;
     }
 
-    // Fungsi pembantu generate angka unik (tidak kembar untuk BBFS)
+    // Fungsi: Angka Unik (Tanpa Kembar) - Cocok untuk BBFS/AI/Macau
     const getUniqueNumbers = (count) => {
         let nums = [];
         while(nums.length < count){
@@ -970,29 +970,36 @@ function generateTogel() {
         return nums.join('');
     };
 
-    // Fungsi generate angka (boleh kembar untuk 4D/3D/2D)
+    // Fungsi: Angka Acak (Boleh Kembar) - Cocok untuk 4D/3D/2D
     const getRandomDigits = (count) => {
         let res = "";
         for(let i=0; i<count; i++) res += Math.floor(Math.random() * 10);
         return res;
     };
 
-    // Data Prediksi
+    // Logika Khusus Twin
+    const twinDigit = Math.floor(Math.random() * 10);
+    const angkaTwin = `${twinDigit}${twinDigit} / ${Math.floor(Math.random()*10)}${Math.floor(Math.random()*10)}`;
+
+    // Data Prediksi Baru Sesuai Permintaan Anda
     const dataPrediksi = [
-        { tipe: "BBFS", angka: getUniqueNumbers(6) },
-        { tipe: "4D Jitu", angka: getRandomDigits(4) },
-        { tipe: "3D Jitu", angka: getRandomDigits(3) },
-        { tipe: "2D Belakang", angka: getRandomDigits(2) },
-        { tipe: "Colok Bebas", angka: Math.floor(Math.random() * 10) }
+        { tipe: "BBFS KUAT", angka: getUniqueNumbers(6) },
+        { tipe: "ANGKA IKUT", angka: getUniqueNumbers(4) },
+        { tipe: "4D (BB)", angka: getRandomDigits(4) },
+        { tipe: "3D (BB)", angka: getRandomDigits(3) },
+        { tipe: "2D (BB)", angka: getRandomDigits(2) },
+        { tipe: "COLOK BEBAS", angka: getRandomDigits(1) },
+        { tipe: "COLOK MACAU", angka: getUniqueNumbers(2).split('').join(' - ') },
+        { tipe: "ANGKA TWIN", angka: `${twinDigit}${twinDigit}` }
     ];
 
-    // Render ke Tabel
+    // Tampilkan ke Tabel
     tableBody.innerHTML = "";
     dataPrediksi.forEach(item => {
         tableBody.innerHTML += `
         <tr>
-            <td style="font-weight: bold; color: #bdc3c7;">${item.tipe}</td>
-            <td style="color: var(--primary-gold); font-family: 'Courier New', monospace; font-size: 18px; letter-spacing: 2px; font-weight: bold;">
+            <td style="font-weight: bold; color: #bdc3c7; font-size: 11px;">${item.tipe}</td>
+            <td style="color: var(--primary-gold); font-family: 'Courier New', monospace; font-size: 16px; letter-spacing: 2px; font-weight: bold;">
                 ${item.angka}
             </td>
             <td style="text-align: center;">
@@ -1003,3 +1010,4 @@ function generateTogel() {
         </tr>`;
     });
 }
+
