@@ -769,3 +769,12 @@ body {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+
+#togelTableBody td {
+    padding: 12px 8px;
+    border-bottom: 1px solid #333;
+}
+
+#togelTableBody tr:hover {
+    background: rgba(241, 196, 15, 0.05); /* Highlight emas tipis saat kursor di atas baris */
+}
