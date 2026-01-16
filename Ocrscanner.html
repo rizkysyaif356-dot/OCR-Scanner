@@ -32,6 +32,7 @@
     <a onclick="showSection('pelengkap')" class="menu-item locked">🛠️ Pelengkap Operasional</a>
     <a onclick="showSection('kalkulator')" class="menu-item locked">🧮 Kalkulator Cepat</a>
     <a onclick="showSection('kesalahan')" class="menu-item locked">⚠️ Kesalahan Operasional</a>
+    <a onclick="showSection('togel')" class="menu-item locked">🎰 Prediksi Togel</a>
 </div>
     
 
@@ -190,6 +191,84 @@
             </div>
     </div>
 </section>
+
+<section id="togel" class="content-section">
+    <div class="container">
+        <h2>🎰 Prediksi Togel Acak</h2>
+        
+        <div style="margin-bottom: 20px;">
+            <label style="color: #bdc3c7; display: block; margin-bottom: 8px; font-size: 12px;">Pilih Pasaran:</label>
+            <select id="pasaranSelect" onchange="generateTogel()" style="width: 100%; padding: 12px; background: #222; color: var(--primary-gold); border: 1px solid var(--primary-gold); border-radius: 5px; font-weight: bold;">
+                <option value="">-- PILIH PASARAN --</option>
+<option value="BANGKOK 0130">BANGKOK 0130</option>
+<option value="BANGKOK 0930">BANGKOK 0930</option>
+<option value="BRUNEI 02">BRUNEI 02</option>
+<option value="BRUNEI 14">BRUNEI 14</option>
+<option value="BRUNEI 21">BRUNEI 21</option>
+<option value="BULLSEYE">BULLSEYE</option>
+<option value="CALIFORNIA">CALIFORNIA</option>
+<option value="CAROLINA DAY">CAROLINA DAY</option>
+<option value="CAROLINA EVENING">CAROLINA EVENING</option>
+<option value="CHELSEA 11">CHELSEA 11</option>
+<option value="CHELSEA 15">CHELSEA 15</option>
+<option value="CHELSEA 19">CHELSEA 19</option>
+<option value="CHELSEA 21">CHELSEA 21</option>
+<option value="FLORIDA EVENING">FLORIDA EVENING</option>
+<option value="FLORIDA MIDDAY">FLORIDA MIDDAY</option>
+<option value="HOKI DRAW">HOKI DRAW</option>
+<option value="HONGKONG">HONGKONG</option>
+<option value="HUAHIN 0100">HUAHIN 0100</option>
+<option value="HUAHIN 1630">HUAHIN 1630</option>
+<option value="HUAHIN 2100">HUAHIN 2100</option>
+<option value="KENTUCKY EVENING">KENTUCKY EVENING</option>
+<option value="KENTUCKY MIDDAY">KENTUCKY MIDDAY</option>
+<option value="KING KONG POOLS MALAM">KING KONG POOLS MALAM</option>
+<option value="KING KONG POOLS SORE">KING KONG POOLS SORE</option>
+<option value="MAGNUM4D">MAGNUM4D</option>
+<option value="NEVADA">NEVADA</option>
+<option value="NEWYORK EVENING">NEWYORK EVENING</option>
+<option value="NEWYORK MIDDAY">NEWYORK MIDDAY</option>
+<option value="OREGON03">OREGON03</option>
+<option value="OREGON06">OREGON06</option>
+<option value="OREGON09">OREGON09</option>
+<option value="OREGON12">OREGON12</option>
+<option value="PCSO">PCSO</option>
+<option value="POIPET 12">POIPET 12</option>
+<option value="POIPET 15">POIPET 15</option>
+<option value="POIPET 19">POIPET 19</option>
+<option value="POIPET 22">POIPET 22</option>
+<option value="SINGAPORE">SINGAPORE</option>
+<option value="SYDNEY">SYDNEY</option>
+<option value="TOTO CAMBODIA">TOTO CAMBODIA</option>
+<option value="TOTOMACAU MALAM I">TOTOMACAU MALAM I</option>
+<option value="TOTOMACAU MALAM II">TOTOMACAU MALAM II</option>
+<option value="TOTOMACAU MALAM III">TOTOMACAU MALAM III</option>
+<option value="TOTOMACAU PAGI">TOTOMACAU PAGI</option>
+<option value="TOTOMACAU SIANG">TOTOMACAU SIANG</option>
+<option value="TOTOMACAU SORE">TOTOMACAU SORE</option>
+            </select>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th width="35%">Tipe</th>
+                        <th width="45%">Angka</th>
+                        <th width="20%">Salin</th>
+                    </tr>
+                </thead>
+                <tbody id="togelTableBody">
+                    <tr><td colspan="3" style="text-align:center; color: #888;">Silahkan pilih pasaran di atas...</td></tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <p style="font-size: 10px; color: #777; margin-top: 15px; text-align: center;">
+            *Angka dihasilkan secara acak oleh sistem (Random Generator).
+        </p>
+    </div>
+</section>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
 <script src="script.js"></script>
 <div id="ai-assistant" class="ai-container">
@@ -281,3 +360,4 @@
 
 </body>
 </html>
+
