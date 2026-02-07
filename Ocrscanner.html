@@ -33,6 +33,7 @@
     <a onclick="showSection('kalkulator')" class="menu-item locked">🧮 Kalkulator Cepat</a>
     <a onclick="showSection('kesalahan')" class="menu-item locked">⚠️ Kesalahan Operasional</a>
     <a onclick="showSection('togel')" class="menu-item locked">🎰 Prediksi Togel</a>
+    <a onclick="showSection('freespin')" class="menu-item"><i class="fas fa-dice"></i> Dashboard Free Spin</a>
 </div>
     
 
@@ -275,6 +276,41 @@
     <div id="ai-bubble" class="speech-bubble">Siap memantau!</div>
     <div id="ai-robot" class="robot-icon">🤖</div>
 </div>
+
+<section id="freespin" class="content-section">
+    <div class="container">
+        <h2>🎰 Dashboard Free Spin</h2>
+        
+        <div class="dashboard-box" style="background: rgba(255, 255, 255, 0.05); padding: 20px; border-radius: 15px; border: 1px solid var(--primary-gold);">
+            <div class="input-group" style="margin-bottom: 20px;">
+                <label style="display:block; margin-bottom:10px; color: var(--primary-gold);">Input Data (Format: Nama:Angka):</label>
+                <textarea id="inputDataFreeSpin" placeholder="Contoh: &#10;Rizky:20.00 &#10;Syaifullah:2187.60" 
+                    style="width: 100%; height: 120px; background: #222; color: #fff; border: 1px solid #444; padding: 10px; border-radius: 8px;"></textarea>
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                <button onclick="calculateFreeSpin()" style="flex:1; background: var(--primary-gold); color: #000; font-weight: bold; padding: 12px; border: none; border-radius: 8px; cursor: pointer;">
+                    <i class="fas fa-calculator"></i> HITUNG TOTAL
+                </button>
+                <button onclick="resetFreeSpin()" style="flex:1; background: #e74c3c; color: #fff; padding: 12px; border: none; border-radius: 8px; cursor: pointer;">
+                    <i class="fas fa-undo"></i> RESET
+                </button>
+            </div>
+
+            <div class="result-card" style="background: #111; padding: 15px; border-radius: 10px; text-align: center; border-bottom: 3px solid var(--primary-gold);">
+                <span style="font-size: 12px; color: #888; text-transform: uppercase;">Total Keseluruhan</span>
+                <h1 id="totalAmountFreeSpin" style="color: var(--primary-gold); margin: 5px 0;">IDR 0,000</h1>
+            </div>
+
+            <div class="breakdown-section" style="margin-top: 20px;">
+                <h4 style="font-size: 14px; margin-bottom: 10px; color: #bdc3c7;">Rincian Data:</h4>
+                <ul id="breakdownListFreeSpin" style="list-style: none; padding: 0; font-size: 13px;">
+                    <li style="color:#666; font-style:italic;">Data akan muncul di sini...</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
 
 <style>
 .ai-container {
