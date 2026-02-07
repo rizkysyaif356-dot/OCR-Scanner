@@ -1011,3 +1011,54 @@ function generateTogel() {
     });
 }
 
+// --- LOGIKA DASHBOARD FREE SPIN ---
+
+function calculateFreeSpin() {
+    const inputArea = document.getElementById('inputDataFreeSpin');
+    const totalDisplay = document.getElementById('totalAmountFreeSpin');
+    const listDisplay = document.getElementById('breakdownListFreeSpin');
+    
+    // Ambil teks dan hapus semua spasi/baris baru agar menjadi satu baris utuh
+    const text = inputArea.value.replace(/\s+/g, '');
+    
+    // REGEX Baru: Mencari 'Pembayaran0.00' lalu mengambil angka hingga menemukan dua digit setelah titik
+    // Pola ini akan berhenti tepat di .00 meskipun setelahnya ada angka saldo yang menempel
+    const regex = /Pembayaran0\.00([\d,]+\.\d{2})/g;
+    
+    let match;
+    let total = 0;
+    let count = 0;
+    let listHtml = '';
+
+    while ((match = regex.exec(text)) !== null) {
+        let nominalRaw = match[1]; 
+        
+        // Hilangkan koma agar bisa dihitung
+        let nominalClean = parseFloat(nominalRaw.replace(/,/g, ''));
+
+        if (!isNaN(nominalClean) && nominalClean > 0) {
+            total += nominalClean;
+            count++;
+            listHtml += `
+                <li style="padding: 8px 0; border-bottom: 1px solid #333; display: flex; justify-content: space-between; font-family: monospace;">
+                    <span>Data #${count}</span>
+                    <span style="color: var(--primary-gold); font-weight: bold;">+ ${nominalClean.toLocaleString('id-ID')}</span>
+                </li>`;
+        }
+    }
+
+    if (count === 0) {
+        listDisplay.innerHTML = '<li style="color:#e74c3c; font-style:italic; font-size:12px;">Data tidak terbaca. Pastikan terdapat kata "Pembayaran0.00"</li>';
+        totalDisplay.textContent = 'IDR 0';
+    } else {
+        listDisplay.innerHTML = listHtml;
+        // Total akhir
+        totalDisplay.textContent = 'IDR ' + total.toLocaleString('id-ID');
+        
+        // Tambahkan log di console untuk cek manual jika ragu
+        console.log("Total Item Ditemukan:", count);
+        console.log("Total Nominal:", total);
+    }
+}
+// Pastikan showSection bisa mengenali ID baru
+// Update fungsi showSection Anda yang sudah ada untuk menambahkan reset atau trigger khusus jika perlu
