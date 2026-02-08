@@ -1053,12 +1053,19 @@ function calculateFreeSpin() {
     } else {
         listDisplay.innerHTML = listHtml;
         // Total akhir
-        totalDisplay.textContent = 'IDR ' + total.toLocaleString('id-ID');
+        totalDisplay.textContent = 'IDR ' + total.toLocaleString('en-US');
         
         // Tambahkan log di console untuk cek manual jika ragu
         console.log("Total Item Ditemukan:", count);
         console.log("Total Nominal:", total);
     }
 }
+
+function resetFreeSpin() {
+    document.getElementById('inputDataFreeSpin').value = '';
+    document.getElementById('totalAmountFreeSpin').textContent = 'IDR 0,000';
+    document.getElementById('breakdownListFreeSpin').innerHTML = '<li style="color:#666; font-style:italic;">Data akan muncul di sini...</li>';
+}
+
 // Pastikan showSection bisa mengenali ID baru
 // Update fungsi showSection Anda yang sudah ada untuk menambahkan reset atau trigger khusus jika perlu
