@@ -629,7 +629,7 @@ function aiSmartFix(text) {
 
 function changeTheme(element) {
     const newBg = element.getAttribute('data-bg');
-    const defaultBg = "https://i.imgur.com/DYwrso4.gif";
+    const defaultBg = "https://i.imgur.com/ydxRdvB.gif";
 
     // Fungsi internal untuk menerapkan background secara sempurna
     const applyBackground = (url) => {
