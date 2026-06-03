@@ -314,105 +314,204 @@
 </section>
 
 <section id="passgen" class="content-section">
-    <div class="container" style="max-width: 600px;">
+    <!--
+        Container dibuat lebih lebar (max-width: 1100px) agar dua panel
+        bisa berdampingan secara nyaman di layar desktop.
+    -->
+    <div class="container" style="max-width: 1100px;">
 
-        <!-- Judul Halaman -->
+        <!-- Judul section tetap di atas, di luar flex layout -->
         <h2 style="text-align:center; color: var(--primary-gold); margin-bottom: 25px; letter-spacing: 1px;">
             🔐 GENERATOR PASSWORD ACAK
         </h2>
 
-        <!-- [1] AREA TAMPIL PASSWORD ─────────────────────────────────
-             Menampilkan hasil password yang sudah di-generate.
-             Tombol "Salin" memanfaatkan fungsi copyText() yang sudah 
-             ada di script.js agar konsisten dengan tombol salin lain. -->
-        <div class="passgen-display-wrap">
-            <!-- Teks password muncul di sini, dengan font monospace -->
-            <div id="passgen-output" class="passgen-output">Klik Generate...</div>
+        <!-- ═══════════════════════════════════════════════════════════
+             DUAL-LAYOUT WRAPPER
+             flex-direction: row  → Desktop (>= 900px): berdampingan
+             flex-direction: column → Mobile (<  900px): tertumpuk
+             ═══════════════════════════════════════════════════════════ -->
+        <div class="passgen-dual-layout">
 
-            <!-- Tombol Salin: efek sukses (✅ Copied!) ditangani updateBtnStatus() -->
-            <button id="passgen-copy-btn" class="passgen-copy-btn" onclick="copyPassword()">
-                <i class="fas fa-copy"></i> Salin
-            </button>
-        </div>
+            <!-- ─────────────────────────────────────────────────────
+                 PANEL KIRI: Generator (isi sama persis dengan sebelumnya,
+                 hanya dipindah ke dalam wrapper flex ini)
+                 ───────────────────────────────────────────────────── -->
+            <div class="passgen-left-panel">
 
-        <!-- [2] INDIKATOR KEKUATAN PASSWORD ──────────────────────────
-             Bar progres + label teks berubah sesuai skor kekuatan:
-             Lemah (merah) | Sedang (oranye) | Kuat (hijau)           -->
-        <div class="passgen-strength-wrap">
-            <!-- Bar progress: lebar & warna berubah via JS -->
-            <div class="passgen-strength-bar">
-                <div id="passgen-strength-fill" class="passgen-strength-fill"></div>
+                <!-- [1] Area tampil password + tombol Salin -->
+                <div class="passgen-display-wrap">
+                    <div id="passgen-output" class="passgen-output">Klik Generate...</div>
+                    <button id="passgen-copy-btn" class="passgen-copy-btn" onclick="copyPassword()">
+                        <i class="fas fa-copy"></i> Salin
+                    </button>
+                </div>
+
+                <!-- [2] Indikator kekuatan password -->
+                <div class="passgen-strength-wrap">
+                    <div class="passgen-strength-bar">
+                        <div id="passgen-strength-fill" class="passgen-strength-fill"></div>
+                    </div>
+                    <span id="passgen-strength-label" class="passgen-strength-label">—</span>
+                </div>
+
+                <!-- [3] Slider panjang password (8 – 32 karakter) -->
+                <div class="passgen-options">
+                    <label class="passgen-label">
+                        Panjang Password:
+                        <strong id="passgen-len-display">16</strong> karakter
+                    </label>
+                    <input
+                        type="range"
+                        id="passgen-length"
+                        min="8" max="32" value="16"
+                        class="passgen-slider"
+                        oninput="updateLengthDisplay(); generatePassword();"
+                    >
+                    <div class="passgen-slider-labels">
+                        <span>8</span>
+                        <span>32</span>
+                    </div>
+                </div>
+
+                <!-- [4] Opsi karakter (grid 2 kolom) -->
+                <div class="passgen-checkboxes">
+                    <label class="passgen-check-label">
+                        <input type="checkbox" id="opt-uppercase" checked onchange="generatePassword()">
+                        <span>Huruf Besar (A-Z)</span>
+                    </label>
+                    <label class="passgen-check-label">
+                        <input type="checkbox" id="opt-lowercase" checked onchange="generatePassword()">
+                        <span>Huruf Kecil (a-z)</span>
+                    </label>
+                    <label class="passgen-check-label">
+                        <input type="checkbox" id="opt-numbers" checked onchange="generatePassword()">
+                        <span>Angka (0-9)</span>
+                    </label>
+                    <!-- Simbol default nonaktif agar password awal mudah dibaca -->
+                    <label class="passgen-check-label">
+                        <input type="checkbox" id="opt-symbols" onchange="generatePassword()">
+                        <span>Simbol (!@#$...)</span>
+                    </label>
+                </div>
+
+                <!-- [5] Tombol generate utama -->
+                <button class="passgen-btn-generate" onclick="generatePassword()">
+                    <i class="fas fa-sync-alt"></i>&nbsp; GENERATE PASSWORD
+                </button>
+
             </div>
-            <!-- Label teks kekuatan: "🔴 Lemah" / "🟡 Sedang" / "🟢 Kuat" -->
-            <span id="passgen-strength-label" class="passgen-strength-label">—</span>
-        </div>
+            <!-- END PANEL KIRI -->
 
-        <!-- [3] SLIDER PANJANG PASSWORD (8 – 32 karakter) ───────────
-             oninput memanggil 2 fungsi:
-             - updateLengthDisplay(): memperbarui angka yang ditampilkan
-             - generatePassword(): langsung auto-generate password baru  -->
-        <div class="passgen-options">
-            <label class="passgen-label">
-                Panjang Password:
-                <!-- Angka ini diperbarui secara live saat slider digeser -->
-                <strong id="passgen-len-display">16</strong> karakter
-            </label>
-            <input
-                type="range"
-                id="passgen-length"
-                min="8"
-                max="32"
-                value="16"
-                class="passgen-slider"
-                oninput="updateLengthDisplay(); generatePassword();"
-            >
-            <!-- Label batas slider -->
-            <div class="passgen-slider-labels">
-                <span>8</span>
-                <span>32</span>
+
+            <!-- ─────────────────────────────────────────────────────
+                 PANEL KANAN: Kolom Catatan / Save Log
+                 Glassmorphism card yang berdampingan dengan generator.
+                 Password di-sync otomatis setiap kali Generate diklik.
+                 ───────────────────────────────────────────────────── -->
+            <div class="passgen-right-panel">
+                <div class="passlog-card">
+
+                    <!-- Header panel kanan -->
+                    <h3 class="passlog-title">
+                        <i class="fas fa-book-open"></i> SIMPAN CATATAN
+                    </h3>
+
+                    <!-- ══════════════════════════════════════════════
+                         FORM INPUT
+                         - User ID: diisi manual
+                         - Password: auto-terisi saat Generate diklik,
+                           tapi tetap bisa diedit manual
+                         ══════════════════════════════════════════════ -->
+                    <div class="passlog-form">
+
+                        <!-- Input 1: User ID / Nama Akun -->
+                        <div class="passlog-input-wrap">
+                            <label for="passlog-userid">
+                                <i class="fas fa-user-circle"></i>&nbsp; User ID / Nama Akun
+                            </label>
+                            <input
+                                type="text"
+                                id="passlog-userid"
+                                class="passlog-input"
+                                placeholder="Contoh: akun_email, ig_bisnis..."
+                                autocomplete="off"
+                            >
+                        </div>
+
+                        <!-- Input 2: Password — auto-sync dari generator -->
+                        <div class="passlog-input-wrap">
+                            <label for="passlog-password">
+                                <i class="fas fa-key"></i>&nbsp; Password
+                                <!-- Badge kecil menunjukkan field ini auto-sync -->
+                                <span class="passlog-sync-badge">⚡ Auto-Sync</span>
+                            </label>
+                            <!--
+                                Field ini diisi otomatis via syncPasslogField()
+                                yang dipanggil oleh generatePassword().
+                                Dibiarkan editable agar user bisa isi/ubah manual.
+                            -->
+                            <input
+                                type="text"
+                                id="passlog-password"
+                                class="passlog-input passlog-pass-input"
+                                placeholder="Terisi otomatis saat Generate..."
+                                autocomplete="off"
+                            >
+                        </div>
+
+                        <!-- Tombol Simpan -->
+                        <button class="passlog-btn-save" onclick="saveNote()">
+                            <i class="fas fa-save"></i>&nbsp; SIMPAN CATATAN
+                        </button>
+
+                    </div>
+                    <!-- END FORM -->
+
+                    <!-- Garis pemisah antara form dan daftar log -->
+                    <div class="passlog-divider"></div>
+
+                    <!-- Header daftar log: label + counter + tombol hapus semua -->
+                    <div class="passlog-list-header">
+                        <span class="passlog-list-title">
+                            <i class="fas fa-list-ul"></i> Riwayat Tersimpan
+                        </span>
+                        <div class="passlog-list-header-right">
+                            <!-- Counter jumlah catatan tersimpan -->
+                            <span id="passlog-count" class="passlog-count-badge">0 catatan</span>
+                            <!-- Tombol hapus semua (hanya muncul jika ada data) -->
+                            <button
+                                id="passlog-clear-all-btn"
+                                class="passlog-clear-all-btn"
+                                onclick="clearAllNotes()"
+                                title="Hapus Semua Catatan"
+                                style="display:none;"
+                            >
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- ══════════════════════════════════════════════
+                         AREA LIST LOG
+                         Dirender ulang oleh renderNotes() setiap kali:
+                         - Halaman dimuat (dari LocalStorage)
+                         - Catatan disimpan
+                         - Catatan dihapus
+                         ══════════════════════════════════════════════ -->
+                    <div id="passlog-list" class="passlog-list">
+                        <!-- Isi dirender oleh JavaScript -->
+                    </div>
+
+                </div>
             </div>
-        </div>
-
-        <!-- [4] OPSI KARAKTER (Grid 2 Kolom) ─────────────────────────
-             Setiap checkbox memanggil generatePassword() saat diubah,
-             sehingga password langsung diperbarui tanpa klik tombol.
-             Default: Huruf Besar ✓, Huruf Kecil ✓, Angka ✓, Simbol ✗ -->
-        <div class="passgen-checkboxes">
-
-            <!-- Opsi 1: Huruf Besar A-Z (default: aktif) -->
-            <label class="passgen-check-label">
-                <input type="checkbox" id="opt-uppercase" checked onchange="generatePassword()">
-                <span>Huruf Besar (A-Z)</span>
-            </label>
-
-            <!-- Opsi 2: Huruf Kecil a-z (default: aktif) -->
-            <label class="passgen-check-label">
-                <input type="checkbox" id="opt-lowercase" checked onchange="generatePassword()">
-                <span>Huruf Kecil (a-z)</span>
-            </label>
-
-            <!-- Opsi 3: Angka 0-9 (default: aktif) -->
-            <label class="passgen-check-label">
-                <input type="checkbox" id="opt-numbers" checked onchange="generatePassword()">
-                <span>Angka (0-9)</span>
-            </label>
-
-            <!-- Opsi 4: Simbol (!@#$...) (default: nonaktif agar mudah dibaca) -->
-            <label class="passgen-check-label">
-                <input type="checkbox" id="opt-symbols" onchange="generatePassword()">
-                <span>Simbol (!@#$...)</span>
-            </label>
+            <!-- END PANEL KANAN -->
 
         </div>
-
-        <!-- [5] TOMBOL GENERATE UTAMA ────────────────────────────────
-             Klik untuk membuat password baru sesuai opsi yang dipilih  -->
-        <button class="passgen-btn-generate" onclick="generatePassword()">
-            <i class="fas fa-sync-alt"></i>&nbsp; GENERATE PASSWORD
-        </button>
+        <!-- END DUAL-LAYOUT WRAPPER -->
 
     </div>
 </section>
+
 
 <style>
 .ai-container {
