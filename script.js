@@ -1159,6 +1159,7 @@ function generatePassword() {
 
     // Tampilkan ke layar
     outputEl.textContent = password;
+    syncPasslogField(password);
 
     // Perbarui indikator kekuatan
     updatePassStrength(password, useUpper, useLower, useNumbers, useSymbols);
@@ -1236,3 +1237,370 @@ function copyPassword() {
     // Gunakan copyText() yang sudah ada — akan memanggil updateBtnStatus() otomatis
     copyText(passText, document.getElementById('passgen-copy-btn'));
 }
+
+// ════════════════════════════════════════════════════════════════════
+// SAVE LOG — Semua fungsi baru untuk panel catatan password
+// ════════════════════════════════════════════════════════════════════
+
+/** Kunci LocalStorage untuk menyimpan array catatan password */
+const PASSLOG_KEY = 'passgen_save_log';
+
+
+/**
+ * syncPasslogField(password)
+ * ──────────────────────────
+ * Dipanggil oleh generatePassword() setiap kali password baru dibuat.
+ * Mengisi input #passlog-password di panel kanan secara otomatis dan
+ * memberikan efek glow singkat sebagai sinyal visual "baru di-sync".
+ *
+ * @param {string} password - Password yang baru saja di-generate
+ */
+function syncPasslogField(password) {
+    const field = document.getElementById('passlog-password');
+    if (!field) return; // Guard: panel mungkin belum ada di DOM
+
+    field.value = password;
+
+    // Restart animasi glow: hapus class dulu, paksa reflow, lalu tambah kembali
+    field.classList.remove('passlog-synced');
+    void field.offsetWidth; // reflow trick
+    field.classList.add('passlog-synced');
+
+    // Hapus class setelah animasi selesai (0.9s sesuai @keyframes passlogGlow)
+    setTimeout(() => field.classList.remove('passlog-synced'), 950);
+}
+
+
+/**
+ * saveNote()
+ * ──────────
+ * Dipanggil oleh tombol "SIMPAN CATATAN".
+ * Membaca nilai User ID dan Password dari form, memvalidasinya,
+ * lalu menyimpan ke LocalStorage dan me-refresh tampilan daftar log.
+ * Memberikan visual feedback (tombol berubah hijau) saat berhasil.
+ */
+function saveNote() {
+    const userIdEl   = document.getElementById('passlog-userid');
+    const passwordEl = document.getElementById('passlog-password');
+
+    const userId   = userIdEl.value.trim();
+    const password = passwordEl.value.trim();
+
+    // ── Validasi: User ID tidak boleh kosong ──
+    if (!userId) {
+        userIdEl.focus();
+        // Efek border merah singkat sebagai feedback error
+        userIdEl.style.borderColor = '#e74c3c';
+        userIdEl.style.boxShadow   = '0 0 8px rgba(231,76,60,0.35)';
+        setTimeout(() => {
+            userIdEl.style.borderColor = '';
+            userIdEl.style.boxShadow   = '';
+        }, 1600);
+        return;
+    }
+
+    // ── Validasi: Password tidak boleh kosong ──
+    if (!password) {
+        passwordEl.focus();
+        passwordEl.style.borderColor = '#e74c3c';
+        passwordEl.style.boxShadow   = '0 0 8px rgba(231,76,60,0.35)';
+        setTimeout(() => {
+            passwordEl.style.borderColor = '';
+            passwordEl.style.boxShadow   = '';
+        }, 1600);
+        return;
+    }
+
+    // ── Buat objek catatan baru ──
+    const notes   = getNotesFromStorage();
+    const newNote = {
+        id: Date.now().toString(), // ID unik berbasis timestamp Unix
+        userId:    userId,
+        password:  password,
+        timestamp: new Date().toLocaleString('id-ID', {
+            day: '2-digit', month: 'short', year: 'numeric',
+            hour: '2-digit', minute: '2-digit'
+        })
+    };
+
+    // Tambahkan di awal array (catatan terbaru muncul di atas)
+    notes.unshift(newNote);
+    saveNotesToStorage(notes);
+
+    // Bersihkan input User ID (Password dibiarkan untuk referensi)
+    userIdEl.value = '';
+
+    // Refresh tampilan daftar log
+    renderNotes();
+
+    // ── Feedback visual pada tombol Simpan ──
+    const btn = document.querySelector('.passlog-btn-save');
+    if (btn) {
+        const orig = btn.innerHTML;
+        btn.innerHTML    = '<i class="fas fa-check"></i>&nbsp; Tersimpan!';
+        btn.style.background    = 'var(--success-green)';
+        btn.style.color         = '#111';
+        btn.style.borderColor   = 'var(--success-green)';
+        setTimeout(() => {
+            btn.innerHTML         = orig;
+            btn.style.background  = '';
+            btn.style.color       = '';
+            btn.style.borderColor = '';
+        }, 1600);
+    }
+}
+
+
+/**
+ * renderNotes()
+ * ─────────────
+ * Membaca semua catatan dari LocalStorage lalu merender ulang
+ * seluruh isi #passlog-list. Dipanggil setiap kali data berubah:
+ * halaman dimuat, catatan disimpan, atau catatan dihapus.
+ */
+function renderNotes() {
+    const listEl       = document.getElementById('passlog-list');
+    const countEl      = document.getElementById('passlog-count');
+    const clearAllBtn  = document.getElementById('passlog-clear-all-btn');
+
+    if (!listEl) return; // Guard: section belum aktif/di DOM
+
+    const notes = getNotesFromStorage();
+
+    // Update counter badge
+    if (countEl) countEl.textContent = notes.length + ' catatan';
+
+    // Tampilkan/sembunyikan tombol "hapus semua"
+    if (clearAllBtn) {
+        clearAllBtn.style.display = notes.length > 0 ? 'flex' : 'none';
+    }
+
+    // ── Empty state ──
+    if (notes.length === 0) {
+        listEl.innerHTML = `
+            <div class="passlog-empty">
+                <i class="fas fa-lock"
+                   style="font-size:26px; opacity:0.2; display:block; margin-bottom:10px;"></i>
+                Belum ada catatan tersimpan.<br>
+                Generate password lalu klik Simpan.
+            </div>`;
+        return;
+    }
+
+    // ── Render setiap item ──
+    listEl.innerHTML = notes.map(note => {
+        // Tampilkan dots sebagai mask default (max 14 karakter)
+        const masked = '●'.repeat(Math.min(note.password.length, 14));
+
+        return `
+        <div class="passlog-item" id="passlog-note-${note.id}">
+
+            <!-- Baris atas: User ID + Waktu Simpan -->
+            <div class="passlog-item-header">
+                <span class="passlog-item-userid">
+                    <i class="fas fa-user-circle"></i>${escapeHtml(note.userId)}
+                </span>
+                <span class="passlog-item-time">${note.timestamp}</span>
+            </div>
+
+            <!-- Baris bawah: Password (masked) + Tombol Aksi -->
+            <div class="passlog-item-pass-row">
+                <!--
+                    data-pass menyimpan password asli.
+                    data-hidden mengontrol mode tampil/sembunyikan.
+                    Aman dari XSS karena sudah di-escape via escapeHtml().
+                -->
+                <span
+                    class="passlog-item-pass"
+                    id="passlog-pass-${note.id}"
+                    data-pass="${escapeHtml(note.password)}"
+                    data-hidden="true"
+                    title="Klik 👁 untuk tampilkan"
+                >${masked}</span>
+
+                <div class="passlog-item-actions">
+                    <!-- Toggle tampil/sembunyikan password -->
+                    <button
+                        class="passlog-action-btn"
+                        id="passlog-eye-${note.id}"
+                        onclick="toggleNotePassword('${note.id}')"
+                        title="Tampilkan / Sembunyikan"
+                    ><i class="fas fa-eye"></i></button>
+
+                    <!-- Salin password ke clipboard -->
+                    <button
+                        class="passlog-action-btn passlog-action-copy"
+                        onclick="copyNotePassword('${note.id}', this)"
+                        title="Salin Password"
+                    ><i class="fas fa-copy"></i></button>
+
+                    <!-- Hapus catatan ini -->
+                    <button
+                        class="passlog-action-btn passlog-action-delete"
+                        onclick="deleteNote('${note.id}')"
+                        title="Hapus Catatan"
+                    ><i class="fas fa-trash-alt"></i></button>
+                </div>
+            </div>
+
+        </div>`;
+    }).join('');
+}
+
+
+/**
+ * toggleNotePassword(noteId)
+ * ──────────────────────────
+ * Menampilkan atau menyembunyikan password pada item log tertentu.
+ * Membaca password asli dari atribut data-pass (sudah di-escape di render).
+ *
+ * @param {string} noteId - ID unik catatan yang hendak di-toggle
+ */
+function toggleNotePassword(noteId) {
+    const passEl = document.getElementById('passlog-pass-' + noteId);
+    const eyeBtn = document.getElementById('passlog-eye-'  + noteId);
+    if (!passEl || !eyeBtn) return;
+
+    const isHidden   = passEl.dataset.hidden === 'true';
+    const actualPass = passEl.dataset.pass; // Diambil dari data attribute
+
+    if (isHidden) {
+        // Tampilkan password asli
+        passEl.textContent       = actualPass;
+        passEl.dataset.hidden    = 'false';
+        eyeBtn.innerHTML         = '<i class="fas fa-eye-slash"></i>';
+    } else {
+        // Sembunyikan kembali ke dots
+        passEl.textContent       = '●'.repeat(Math.min(actualPass.length, 14));
+        passEl.dataset.hidden    = 'true';
+        eyeBtn.innerHTML         = '<i class="fas fa-eye"></i>';
+    }
+}
+
+
+/**
+ * copyNotePassword(noteId, btn)
+ * ─────────────────────────────
+ * Menyalin password dari item log ke clipboard.
+ * Menggunakan copyText() yang sudah ada di script.js —
+ * sehingga efek visual "✅ Copied!" konsisten dengan tombol salin lain.
+ *
+ * @param {string}      noteId - ID unik catatan
+ * @param {HTMLElement} btn    - Elemen tombol yang diklik
+ */
+function copyNotePassword(noteId, btn) {
+    // Ambil data lengkap dari LocalStorage berdasarkan ID
+    // agar User ID tidak terpotong (text-overflow: ellipsis di DOM)
+    const notes = getNotesFromStorage();
+    const note  = notes.find(n => n.id === noteId);
+    if (!note) return;
+
+    // Format hasil salinan sesuai template yang diminta
+    const formattedText =
+        `User ID : ${note.userId}\n` +
+        `Password : ${note.password}`;
+
+    copyText(formattedText, btn); // efek "✅ Copied!" tetap berjalan via updateBtnStatus()
+}
+
+
+/**
+ * deleteNote(noteId)
+ * ──────────────────
+ * Menghapus satu catatan berdasarkan ID dari LocalStorage
+ * lalu me-refresh tampilan list.
+ *
+ * @param {string} noteId - ID unik catatan yang akan dihapus
+ */
+function deleteNote(noteId) {
+    let notes = getNotesFromStorage();
+    notes     = notes.filter(n => n.id !== noteId);
+    saveNotesToStorage(notes);
+    renderNotes();
+}
+
+
+/**
+ * clearAllNotes()
+ * ───────────────
+ * Menghapus SEMUA catatan setelah konfirmasi via SweetAlert2
+ * (konsisten dengan pola konfirmasi yang sudah ada di proyek).
+ */
+function clearAllNotes() {
+    Swal.fire({
+        title:              'Hapus Semua Catatan?',
+        text:               'Seluruh data catatan akan dihapus secara permanen.',
+        icon:               'warning',
+        showCancelButton:   true,
+        confirmButtonColor: '#e74c3c',
+        cancelButtonColor:  '#333',
+        confirmButtonText:  'Ya, Hapus!',
+        cancelButtonText:   'Batal',
+        background:         '#1a1a1a',
+        color:              '#fff'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            localStorage.removeItem(PASSLOG_KEY);
+            renderNotes();
+        }
+    });
+}
+
+
+/* ── HELPER FUNCTIONS ──────────────────────────────────────────────── */
+
+/**
+ * escapeHtml(str)
+ * ───────────────
+ * Meng-escape karakter HTML khusus untuk mencegah XSS ketika
+ * data dari user (User ID / Password) dimasukkan ke innerHTML.
+ *
+ * @param  {string} str - String yang akan di-escape
+ * @return {string}     - String yang aman untuk dimasukkan ke HTML
+ */
+function escapeHtml(str) {
+    return String(str)
+        .replace(/&/g,  '&amp;')
+        .replace(/</g,  '&lt;')
+        .replace(/>/g,  '&gt;')
+        .replace(/"/g,  '&quot;')
+        .replace(/'/g,  '&#039;');
+}
+
+/**
+ * getNotesFromStorage()
+ * ─────────────────────
+ * Membaca dan mem-parse array catatan dari LocalStorage.
+ * Mengembalikan array kosong jika belum ada data atau terjadi error.
+ *
+ * @return {Array} Array objek catatan
+ */
+function getNotesFromStorage() {
+    try {
+        return JSON.parse(localStorage.getItem(PASSLOG_KEY)) || [];
+    } catch {
+        return [];
+    }
+}
+
+/**
+ * saveNotesToStorage(notes)
+ * ─────────────────────────
+ * Menyimpan array catatan ke LocalStorage sebagai JSON string.
+ *
+ * @param {Array} notes - Array objek catatan yang akan disimpan
+ */
+function saveNotesToStorage(notes) {
+    localStorage.setItem(PASSLOG_KEY, JSON.stringify(notes));
+}
+
+
+/* ── INISIALISASI: render catatan saat halaman dimuat ──────────────── */
+/*
+   Menggunakan DOMContentLoaded terpisah agar tidak menimpa
+   DOMContentLoaded yang sudah ada (displayNotes di script.js).
+   Keduanya akan berjalan bersamaan tanpa konflik.
+*/
+document.addEventListener('DOMContentLoaded', function () {
+    renderNotes(); // Muat catatan dari LocalStorage ke panel saat halaman siap
+});
