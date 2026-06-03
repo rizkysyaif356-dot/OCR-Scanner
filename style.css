@@ -1087,3 +1087,414 @@ body {
     }
 }
 
+/* ════════════════════════════════════════════════════════════════════
+   PASSGEN — DUAL PANEL LAYOUT
+   Flex row pada desktop, tertumpuk pada mobile
+   ════════════════════════════════════════════════════════════════════ */
+
+/* Container flex baris untuk dua panel berdampingan */
+.passgen-dual-layout {
+    display: flex;
+    gap: 22px;
+    align-items: flex-start;
+}
+
+/* ── Panel Kiri: Generator ─────────────────────────────────────────── */
+/* Lebar tetap agar generator tidak melebar terlalu jauh */
+.passgen-left-panel {
+    flex: 0 0 430px;
+    max-width: 430px;
+    min-width: 0;
+}
+
+/* ── Panel Kanan: Save Log ─────────────────────────────────────────── */
+/* Mengisi sisa ruang yang tersedia setelah panel kiri */
+.passgen-right-panel {
+    flex: 1;
+    min-width: 280px;
+    min-height: 0;
+}
+
+/* ── Responsif: Di bawah 900px → tertumpuk vertikal ───────────────── */
+@media screen and (max-width: 900px) {
+    .passgen-dual-layout {
+        flex-direction: column;
+    }
+    /* Panel kiri menjadi full lebar saat tertumpuk */
+    .passgen-left-panel {
+        flex: none;
+        max-width: 100%;
+        width: 100%;
+    }
+}
+
+
+/* ════════════════════════════════════════════════════════════════════
+   PASSGEN SAVE LOG — Panel Kanan (Glassmorphism Card)
+   ════════════════════════════════════════════════════════════════════ */
+
+/* Glassmorphism card — konsisten dengan estetika panel lain di proyek */
+.passlog-card {
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 22px 20px;
+    box-sizing: border-box;
+}
+
+/* Judul panel kanan */
+.passlog-title {
+    font-size: 14px;
+    font-weight: bold;
+    color: var(--primary-gold);
+    margin: 0 0 18px 0;
+    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+
+/* ── FORM: Input Fields ────────────────────────────────────────────── */
+
+.passlog-form {
+    margin-bottom: 16px;
+}
+
+.passlog-input-wrap {
+    margin-bottom: 12px;
+}
+
+/* Label kecil di atas setiap input */
+.passlog-input-wrap label {
+    display: block;
+    font-size: 10.5px;
+    color: rgba(255, 255, 255, 0.4);
+    text-transform: uppercase;
+    letter-spacing: 0.9px;
+    margin-bottom: 6px;
+}
+
+/* Badge kecil "⚡ Auto-Sync" di sebelah label Password */
+.passlog-sync-badge {
+    display: inline-block;
+    font-size: 9px;
+    color: var(--primary-gold);
+    background: rgba(241, 196, 15, 0.1);
+    border: 1px solid rgba(241, 196, 15, 0.25);
+    border-radius: 20px;
+    padding: 1px 7px;
+    margin-left: 6px;
+    vertical-align: middle;
+    text-transform: none;
+    letter-spacing: 0.3px;
+    font-weight: bold;
+}
+
+/* Style dasar input teks di log panel */
+.passlog-input {
+    width: 100%;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 10px 14px;
+    color: #ecf0f1;
+    font-size: 13px;
+    font-family: 'Segoe UI', sans-serif;
+    outline: none;
+    box-sizing: border-box;
+    transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.passlog-input:focus {
+    border-color: rgba(241, 196, 15, 0.5);
+    box-shadow: 0 0 10px rgba(241, 196, 15, 0.12);
+}
+
+.passlog-input::placeholder {
+    color: rgba(255, 255, 255, 0.18);
+    font-style: italic;
+}
+
+/* Input khusus password: monospace + warna gold agar estetik */
+.passlog-input.passlog-pass-input {
+    font-family: 'Courier New', Courier, monospace;
+    letter-spacing: 2px;
+    color: var(--primary-gold);
+    font-weight: bold;
+}
+
+/*
+   Animasi glow saat password baru di-sync dari generator.
+   Class .passlog-synced ditambahkan/dihapus via JS.
+*/
+@keyframes passlogGlow {
+    0%   { border-color: rgba(241, 196, 15, 0.9); box-shadow: 0 0 14px rgba(241, 196, 15, 0.45); }
+    100% { border-color: rgba(255, 255, 255, 0.1); box-shadow: none; }
+}
+
+.passlog-input.passlog-synced {
+    animation: passlogGlow 0.9s ease-out forwards;
+}
+
+/* ── Tombol Simpan ─────────────────────────────────────────────────── */
+.passlog-btn-save {
+    width: 100% !important;
+    background: rgba(46, 204, 113, 0.1);
+    color: var(--success-green);
+    border: 1px solid rgba(46, 204, 113, 0.35);
+    border-radius: 10px;
+    padding: 11px;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+    letter-spacing: 0.8px;
+    transition: all 0.25s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.passlog-btn-save:hover {
+    background: var(--success-green);
+    color: #111;
+    border-color: var(--success-green);
+    transform: translateY(-1px);
+    box-shadow: 0 5px 15px rgba(46, 204, 113, 0.3);
+}
+
+/* Efek kilap pada hover (mirip tombol generate) */
+.passlog-btn-save::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -80%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+    transition: left 0.45s ease;
+}
+
+.passlog-btn-save:hover::before { left: 150%; }
+
+
+/* ── Garis Pemisah & Header List ───────────────────────────────────── */
+
+.passlog-divider {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.07);
+    margin: 18px 0 14px;
+}
+
+.passlog-list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.passlog-list-title {
+    font-size: 12px;
+    color: #bdc3c7;
+    font-weight: bold;
+    letter-spacing: 0.3px;
+}
+
+.passlog-list-header-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Badge counter: "3 catatan" */
+.passlog-count-badge {
+    font-size: 10.5px;
+    color: rgba(241, 196, 15, 0.55);
+    background: rgba(241, 196, 15, 0.07);
+    border: 1px solid rgba(241, 196, 15, 0.15);
+    border-radius: 20px;
+    padding: 2px 9px;
+}
+
+/* Tombol hapus semua kecil di header list */
+.passlog-clear-all-btn {
+    width: 26px !important;
+    height: 26px;
+    padding: 0 !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(231, 76, 60, 0.08);
+    border: 1px solid rgba(231, 76, 60, 0.25);
+    border-radius: 7px;
+    color: rgba(231, 76, 60, 0.6);
+    font-size: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.passlog-clear-all-btn:hover {
+    background: rgba(231, 76, 60, 0.85);
+    color: #fff;
+    border-color: #e74c3c;
+    transform: scale(1.1);
+}
+
+
+/* ── AREA DAFTAR LOG ────────────────────────────────────────────────── */
+
+.passlog-list {
+    max-height: 370px;
+    overflow-y: auto;
+    padding-right: 3px;
+}
+
+/* Scrollbar custom agar serasi dengan scrollbar di proyek */
+.passlog-list::-webkit-scrollbar { width: 4px; }
+.passlog-list::-webkit-scrollbar-thumb {
+    background: rgba(241, 196, 15, 0.3);
+    border-radius: 10px;
+}
+.passlog-list::-webkit-scrollbar-track { background: transparent; }
+
+/* Empty state: ditampilkan saat belum ada catatan */
+.passlog-empty {
+    text-align: center;
+    color: rgba(255, 255, 255, 0.18);
+    font-size: 12px;
+    padding: 28px 0 20px;
+    font-style: italic;
+    line-height: 1.8;
+}
+
+
+/* ── LOG ITEM: Setiap kartu catatan tersimpan ───────────────────────── */
+
+.passlog-item {
+    background: rgba(0, 0, 0, 0.28);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 12px;
+    padding: 11px 13px;
+    margin-bottom: 8px;
+    transition: border-color 0.2s ease, background 0.2s ease;
+    /* Animasi masuk saat item baru disimpan */
+    animation: passlogItemIn 0.3s ease-out;
+}
+
+@keyframes passlogItemIn {
+    from { opacity: 0; transform: translateY(-8px) scale(0.98); }
+    to   { opacity: 1; transform: translateY(0)   scale(1); }
+}
+
+.passlog-item:hover {
+    border-color: rgba(255, 255, 255, 0.13);
+    background: rgba(0, 0, 0, 0.38);
+}
+
+/* Baris atas item: User ID + Timestamp */
+.passlog-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+/* Label nama akun */
+.passlog-item-userid {
+    font-size: 12.5px;
+    font-weight: bold;
+    color: #ecf0f1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+}
+
+.passlog-item-userid i {
+    color: rgba(241, 196, 15, 0.45);
+    margin-right: 4px;
+    font-size: 11px;
+}
+
+/* Waktu simpan (sudut kanan atas item) */
+.passlog-item-time {
+    font-size: 9.5px;
+    color: rgba(255, 255, 255, 0.2);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+/* Baris bawah item: Password (masked) + Tombol aksi */
+.passlog-item-pass-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Teks password: dots by default, bisa di-toggle */
+.passlog-item-pass {
+    flex: 1;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12.5px;
+    color: rgba(241, 196, 15, 0.65);
+    letter-spacing: 2px;
+    word-break: break-all;
+    min-width: 0;
+    transition: color 0.2s ease;
+    cursor: default;
+    user-select: text;
+}
+
+/* Saat password ditampilkan (data-hidden="false") warna lebih terang */
+.passlog-item-pass[data-hidden="false"] {
+    color: var(--primary-gold);
+    letter-spacing: 1.5px;
+}
+
+/* Grup tombol aksi (eye / copy / delete) */
+.passlog-item-actions {
+    display: flex;
+    gap: 4px;
+    flex-shrink: 0;
+}
+
+/* Base style semua tombol aksi kecil */
+.passlog-action-btn {
+    width: 27px !important;
+    height: 27px;
+    padding: 0 !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 7px;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 10.5px;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    flex-shrink: 0;
+}
+
+.passlog-action-btn:hover {
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.22);
+    background: rgba(255, 255, 255, 0.1);
+    transform: scale(1.12);
+}
+
+/* Tombol Copy: aksen biru */
+.passlog-action-copy:hover {
+    color: #3498db;
+    border-color: rgba(52, 152, 219, 0.4);
+    background: rgba(52, 152, 219, 0.1);
+}
+
+/* Tombol Hapus: aksen merah */
+.passlog-action-delete:hover {
+    color: #e74c3c;
+    border-color: rgba(231, 76, 60, 0.4);
+    background: rgba(231, 76, 60, 0.1);
+}
+
