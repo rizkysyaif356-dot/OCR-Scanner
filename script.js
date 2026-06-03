@@ -1069,3 +1069,170 @@ function resetFreeSpin() {
 
 // Pastikan showSection bisa mengenali ID baru
 // Update fungsi showSection Anda yang sudah ada untuk menambahkan reset atau trigger khusus jika perlu
+
+// ════════════════════════════════════════════════════════════════════
+// PASSWORD GENERATOR — Functions
+// ════════════════════════════════════════════════════════════════════
+
+/**
+ * updateLengthDisplay()
+ * ─────────────────────
+ * Memperbarui teks angka di sebelah label slider secara live.
+ * Dipanggil via oninput pada elemen <input type="range">.
+ */
+function updateLengthDisplay() {
+    const sliderVal = document.getElementById('passgen-length').value;
+    document.getElementById('passgen-len-display').textContent = sliderVal;
+}
+
+
+/**
+ * generatePassword()
+ * ──────────────────
+ * Fungsi utama: membangun password acak berdasarkan pilihan checkbox
+ * dan panjang dari slider. Menggunakan teknik "guaranteed character"
+ * agar setiap tipe karakter yang diaktifkan pasti muncul minimal 1x,
+ * kemudian posisi dikacak agar tidak mudah ditebak.
+ *
+ * Dipanggil oleh:
+ *   - Tombol "GENERATE PASSWORD" (onclick)
+ *   - Setiap perubahan checkbox (onchange)
+ *   - Pergeseran slider (oninput)
+ */
+function generatePassword() {
+    const length     = parseInt(document.getElementById('passgen-length').value);
+    const useUpper   = document.getElementById('opt-uppercase').checked;
+    const useLower   = document.getElementById('opt-lowercase').checked;
+    const useNumbers = document.getElementById('opt-numbers').checked;
+    const useSymbols = document.getElementById('opt-symbols').checked;
+
+    const outputEl = document.getElementById('passgen-output');
+
+    // ── Validasi: minimal 1 opsi harus dipilih ──
+    if (!useUpper && !useLower && !useNumbers && !useSymbols) {
+        outputEl.textContent = '⚠️ Pilih minimal satu opsi!';
+        document.getElementById('passgen-strength-fill').style.width = '0%';
+        document.getElementById('passgen-strength-label').textContent = '—';
+        document.getElementById('passgen-strength-label').style.color = '#888';
+        return;
+    }
+
+    // ── Kumpulan karakter untuk setiap tipe ──
+    const CHAR = {
+        upper:   'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+        lower:   'abcdefghijklmnopqrstuvwxyz',
+        numbers: '0123456789',
+        symbols: '!@#$%^&*()_+-=[]{}|;:,.<>?'
+    };
+
+    let fullCharset = ''; // Gabungan semua charset yang aktif
+    let guaranteed  = []; // Simpan 1 karakter pasti dari setiap tipe aktif
+
+    // Bangun charset & ambil 1 karakter terjamin dari tiap tipe aktif
+    if (useUpper) {
+        fullCharset += CHAR.upper;
+        guaranteed.push(CHAR.upper[Math.floor(Math.random() * CHAR.upper.length)]);
+    }
+    if (useLower) {
+        fullCharset += CHAR.lower;
+        guaranteed.push(CHAR.lower[Math.floor(Math.random() * CHAR.lower.length)]);
+    }
+    if (useNumbers) {
+        fullCharset += CHAR.numbers;
+        guaranteed.push(CHAR.numbers[Math.floor(Math.random() * CHAR.numbers.length)]);
+    }
+    if (useSymbols) {
+        fullCharset += CHAR.symbols;
+        guaranteed.push(CHAR.symbols[Math.floor(Math.random() * CHAR.symbols.length)]);
+    }
+
+    // Isi sisa karakter dari gabungan charset
+    let passwordArr = [...guaranteed];
+    for (let i = guaranteed.length; i < length; i++) {
+        passwordArr.push(fullCharset[Math.floor(Math.random() * fullCharset.length)]);
+    }
+
+    // Kacak urutan agar karakter 'guaranteed' tidak selalu di posisi awal
+    const password = passwordArr
+        .sort(() => Math.random() - 0.5)
+        .join('');
+
+    // Tampilkan ke layar
+    outputEl.textContent = password;
+
+    // Perbarui indikator kekuatan
+    updatePassStrength(password, useUpper, useLower, useNumbers, useSymbols);
+
+    // Reset tombol Salin ke state semula (jika sebelumnya sudah diklik)
+    const copyBtn = document.getElementById('passgen-copy-btn');
+    copyBtn.innerHTML = '<i class="fas fa-copy"></i> Salin';
+    copyBtn.classList.remove('passgen-copied');
+}
+
+
+/**
+ * updatePassStrength(password, ...flags)
+ * ───────────────────────────────────────
+ * Menghitung skor kekuatan password berdasarkan dua faktor:
+ *   1. Panjang: +1 jika >= 12 karakter, +1 lagi jika >= 20 karakter
+ *   2. Variasi: jumlah tipe karakter aktif - 1 (min 0, max 3)
+ *
+ * Total skor maksimal: 5
+ *   ≤ 1 = Lemah  (merah,  33%)
+ *   2-3 = Sedang (oranye, 66%)
+ *   4-5 = Kuat   (hijau, 100%)
+ */
+function updatePassStrength(password, useUpper, useLower, useNumbers, useSymbols) {
+    let score = 0;
+
+    // Penilaian dari panjang
+    if (password.length >= 12) score += 1;
+    if (password.length >= 20) score += 1;
+
+    // Penilaian dari jumlah tipe karakter yang aktif
+    const typesActive = [useUpper, useLower, useNumbers, useSymbols].filter(Boolean).length;
+    score += (typesActive - 1); // 1 tipe = +0, 2 tipe = +1, 3 tipe = +2, 4 tipe = +3
+
+    const fillEl  = document.getElementById('passgen-strength-fill');
+    const labelEl = document.getElementById('passgen-strength-label');
+
+    if (score <= 1) {
+        // Lemah
+        fillEl.style.width      = '33%';
+        fillEl.style.background = '#e74c3c';
+        labelEl.textContent     = '🔴 Lemah';
+        labelEl.style.color     = '#e74c3c';
+    } else if (score <= 3) {
+        // Sedang
+        fillEl.style.width      = '66%';
+        fillEl.style.background = '#f39c12';
+        labelEl.textContent     = '🟡 Sedang';
+        labelEl.style.color     = '#f39c12';
+    } else {
+        // Kuat
+        fillEl.style.width      = '100%';
+        fillEl.style.background = '#2ecc71';
+        labelEl.textContent     = '🟢 Kuat';
+        labelEl.style.color     = '#2ecc71';
+    }
+}
+
+
+/**
+ * copyPassword()
+ * ──────────────
+ * Menyalin password ke clipboard menggunakan fungsi copyText() yang
+ * sudah ada di script.js. Fungsi updateBtnStatus() (dari script.js)
+ * akan otomatis menangani efek visual "✅ Copied!" pada tombol.
+ *
+ * Tidak akan berjalan jika password belum di-generate.
+ */
+function copyPassword() {
+    const passText = document.getElementById('passgen-output').textContent;
+
+    // Jangan salin jika belum di-generate atau ada pesan error
+    if (!passText || passText === 'Klik Generate...' || passText.includes('⚠️')) return;
+
+    // Gunakan copyText() yang sudah ada — akan memanggil updateBtnStatus() otomatis
+    copyText(passText, document.getElementById('passgen-copy-btn'));
+}
