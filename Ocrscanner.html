@@ -34,6 +34,7 @@
     <a onclick="showSection('kesalahan')" class="menu-item locked">⚠️ Kesalahan Operasional</a>
     <a onclick="showSection('togel')" class="menu-item locked">🎰 Prediksi Togel</a>
     <a onclick="showSection('freespin')" class="menu-item"><i class="fas fa-dice"></i> Dashboard Free Spin</a>
+    <a onclick="showSection('passgen')" class="menu-item locked">🔑 Generator Password</a>
 </div>
     
 
@@ -309,6 +310,107 @@
                 </ul>
             </div>
         </div>
+    </div>
+</section>
+
+<section id="passgen" class="content-section">
+    <div class="container" style="max-width: 600px;">
+
+        <!-- Judul Halaman -->
+        <h2 style="text-align:center; color: var(--primary-gold); margin-bottom: 25px; letter-spacing: 1px;">
+            🔐 GENERATOR PASSWORD ACAK
+        </h2>
+
+        <!-- [1] AREA TAMPIL PASSWORD ─────────────────────────────────
+             Menampilkan hasil password yang sudah di-generate.
+             Tombol "Salin" memanfaatkan fungsi copyText() yang sudah 
+             ada di script.js agar konsisten dengan tombol salin lain. -->
+        <div class="passgen-display-wrap">
+            <!-- Teks password muncul di sini, dengan font monospace -->
+            <div id="passgen-output" class="passgen-output">Klik Generate...</div>
+
+            <!-- Tombol Salin: efek sukses (✅ Copied!) ditangani updateBtnStatus() -->
+            <button id="passgen-copy-btn" class="passgen-copy-btn" onclick="copyPassword()">
+                <i class="fas fa-copy"></i> Salin
+            </button>
+        </div>
+
+        <!-- [2] INDIKATOR KEKUATAN PASSWORD ──────────────────────────
+             Bar progres + label teks berubah sesuai skor kekuatan:
+             Lemah (merah) | Sedang (oranye) | Kuat (hijau)           -->
+        <div class="passgen-strength-wrap">
+            <!-- Bar progress: lebar & warna berubah via JS -->
+            <div class="passgen-strength-bar">
+                <div id="passgen-strength-fill" class="passgen-strength-fill"></div>
+            </div>
+            <!-- Label teks kekuatan: "🔴 Lemah" / "🟡 Sedang" / "🟢 Kuat" -->
+            <span id="passgen-strength-label" class="passgen-strength-label">—</span>
+        </div>
+
+        <!-- [3] SLIDER PANJANG PASSWORD (8 – 32 karakter) ───────────
+             oninput memanggil 2 fungsi:
+             - updateLengthDisplay(): memperbarui angka yang ditampilkan
+             - generatePassword(): langsung auto-generate password baru  -->
+        <div class="passgen-options">
+            <label class="passgen-label">
+                Panjang Password:
+                <!-- Angka ini diperbarui secara live saat slider digeser -->
+                <strong id="passgen-len-display">16</strong> karakter
+            </label>
+            <input
+                type="range"
+                id="passgen-length"
+                min="8"
+                max="32"
+                value="16"
+                class="passgen-slider"
+                oninput="updateLengthDisplay(); generatePassword();"
+            >
+            <!-- Label batas slider -->
+            <div class="passgen-slider-labels">
+                <span>8</span>
+                <span>32</span>
+            </div>
+        </div>
+
+        <!-- [4] OPSI KARAKTER (Grid 2 Kolom) ─────────────────────────
+             Setiap checkbox memanggil generatePassword() saat diubah,
+             sehingga password langsung diperbarui tanpa klik tombol.
+             Default: Huruf Besar ✓, Huruf Kecil ✓, Angka ✓, Simbol ✗ -->
+        <div class="passgen-checkboxes">
+
+            <!-- Opsi 1: Huruf Besar A-Z (default: aktif) -->
+            <label class="passgen-check-label">
+                <input type="checkbox" id="opt-uppercase" checked onchange="generatePassword()">
+                <span>Huruf Besar (A-Z)</span>
+            </label>
+
+            <!-- Opsi 2: Huruf Kecil a-z (default: aktif) -->
+            <label class="passgen-check-label">
+                <input type="checkbox" id="opt-lowercase" checked onchange="generatePassword()">
+                <span>Huruf Kecil (a-z)</span>
+            </label>
+
+            <!-- Opsi 3: Angka 0-9 (default: aktif) -->
+            <label class="passgen-check-label">
+                <input type="checkbox" id="opt-numbers" checked onchange="generatePassword()">
+                <span>Angka (0-9)</span>
+            </label>
+
+            <!-- Opsi 4: Simbol (!@#$...) (default: nonaktif agar mudah dibaca) -->
+            <label class="passgen-check-label">
+                <input type="checkbox" id="opt-symbols" onchange="generatePassword()">
+                <span>Simbol (!@#$...)</span>
+            </label>
+
+        </div>
+
+        <!-- [5] TOMBOL GENERATE UTAMA ────────────────────────────────
+             Klik untuk membuat password baru sesuai opsi yang dipilih  -->
+        <button class="passgen-btn-generate" onclick="generatePassword()">
+            <i class="fas fa-sync-alt"></i>&nbsp; GENERATE PASSWORD
+        </button>
+
     </div>
 </section>
 
