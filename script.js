@@ -1,5 +1,5 @@
     const GAS_URL = 'https://script.google.com/macros/s/AKfycbwzQbS_lRWpM3VW5JJgLmo7cCBktdQcleDVadu6ymk_t_AFnnfOCcLkg79SWWg9w3BF/exec';
-    const API_KEY ="AIzaSyASnvHC0RaGATr5hKAadn8ySoXbAIpebNc";
+
 
     function toggleSidebar() { document.getElementById("mySidebar").classList.toggle("active"); }
 
