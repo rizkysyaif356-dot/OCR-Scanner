@@ -1498,7 +1498,9 @@ function copyNotePassword(noteId, btn) {
     // Format hasil salinan sesuai template yang diminta
     const formattedText =
         `User ID : ${note.userId}\n` +
-        `Password : ${note.password}`;
+        `Password : ${note.password}\n\n` +
+        `Silahkan dicoba login dan segera diganti passwordnya ya bosku`;
+        
 
     copyText(formattedText, btn); // efek "✅ Copied!" tetap berjalan via updateBtnStatus()
 }
