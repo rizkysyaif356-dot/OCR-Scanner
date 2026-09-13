@@ -1,0 +1,1417 @@
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycbwzQbS_lRWpM3VW5JJgLmo7cCBktdQcleDVadu6ymk_t_AFnnfOCcLkg79SWWg9w3BF/exec';
+
+
+    function toggleSidebar() { document.getElementById("mySidebar").classList.toggle("active"); }
+
+function showSection(id) {
+    // 1. Sembunyikan SEMUA section
+    document.querySelectorAll('.content-section').forEach(s => {
+        s.classList.remove('active');
+        s.style.display = 'none'; // Paksa sembunyi lewat style inline
+    });
+
+    // 2. Tampilkan Target
+    const target = document.getElementById(id);
+    if (target) {
+        target.classList.add('active');
+        target.style.display = 'block'; // Paksa tampil
+    }
+
+    // 3. Logic Sidebar & Pelengkap
+    const sidebar = document.getElementById("mySidebar");
+    if(sidebar.classList.contains('active')) toggleSidebar();
+    
+    if (id === 'pelengkap') fetchPelengkap();
+    if (id === 'kesalahan') fetchKesalahan();
+    if (id !== 'togel') {
+        document.getElementById('pasaranSelect').value = "";
+    }
+    if (window.innerWidth <= 768) {
+        document.getElementById("mySidebar").classList.remove("active");
+    }
+}
+// Jalankan saat window selesai dimuat
+window.addEventListener('load', function() {
+    // --- BAGIAN 1: MENAMPILKAN JAM & TANGGAL (Tetap Ada) ---
+    const d = new Date();
+    
+    // Format Tanggal
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    const dateString = d.toLocaleDateString('id-ID', options); // Gunakan id-ID agar hari jadi bahasa Indonesia
+    
+    // Update elemen HTML
+    const dateDisplay = document.getElementById('display-date');
+    if (dateDisplay) {
+        dateDisplay.innerText = dateString;
+    }
+
+    // --- BAGIAN 2: LOGIKA PENGECEKAN ABSEN (Otomatis) ---
+    const today = d.toDateString(); // Contoh: "Mon Dec 29 2025"
+    const lastAbsen = localStorage.getItem('lastAbsenDate');
+
+    if (lastAbsen === today) {
+        console.log("Status: Sudah absen hari ini. Membuka akses...");
+        
+        // Buka gembok menu di sidebar
+        document.querySelectorAll('.menu-item.locked').forEach(item => {
+            item.classList.remove('locked');
+            item.style.opacity = '1';
+            item.style.pointerEvents = 'auto';
+            item.style.filter = 'none';
+        });
+        
+        // Opsional: Jika ingin tombol absen di halaman absen berubah jadi "SUDAH ABSEN"
+        const btnAbsen = document.querySelector('.btn-absen');
+        if (btnAbsen) {
+            btnAbsen.innerHTML = "✅ ANDA SUDAH ABSEN HARI INI";
+            btnAbsen.style.background = "#95a5a6";
+            btnAbsen.disabled = true;
+        }
+    }
+    // Tambahkan ini jika ingin jam di Welcome Screen bergerak terus
+setInterval(() => {
+    const now = new Date();
+    const timeString = now.toLocaleTimeString('id-ID');
+    // Jika ada elemen id="display-time", jam akan muncul di sana
+    const timeDisplay = document.getElementById('display-time');
+    if (timeDisplay) timeDisplay.innerText = timeString;
+}, 1000);
+});
+
+function selesaikanAbsen() {
+    const btn = document.querySelector('.btn-absen');
+    const today = new Date().toDateString();
+
+    if(btn) btn.innerHTML = "⏳ Mengirim Data...";
+    
+    const payload = {
+        action: "absen",
+        nama: "MASTER"
+    };
+
+    fetch(GAS_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    }).then(() => {
+        console.log("Absensi terkirim ke Cloud");
+    }).catch(err => console.error("Gagal kirim absen:", err));
+
+    localStorage.setItem('lastAbsenDate', today);
+
+Swal.fire({
+        title: 'Absensi Berhasil!',
+        text: 'Data Anda telah tercatat di Google Sheet.',
+        icon: 'success',
+        background: 'rgba(26, 26, 26, 0.95)',
+        color: '#fff',
+        confirmButtonText: 'Buka Dashboard',
+        confirmButtonColor: '#27ae60'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Buka Gembok & Pindah Section
+            document.querySelectorAll('.menu-item.locked').forEach(item => {
+                item.classList.remove('locked');
+                item.style.filter = 'none';
+                item.style.opacity = '1';
+                item.style.pointerEvents = 'auto';
+            });
+            showSection('scanner');
+        }
+    });
+}
+
+    // --- LOGIKA COPY ---
+function copyText(text, btnElement) {
+    if (!text) return;
+
+    // Cara Modern
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(() => {
+            updateBtnStatus(btnElement);
+        }).catch(err => {
+            console.error("Gagal Copy:", err);
+            fallbackCopy(text, btnElement);
+        });
+    } else {
+        fallbackCopy(text, btnElement);
+    }
+}
+
+// Fungsi Cadangan jika navigator.clipboard tidak didukung/gagal
+function fallbackCopy(text, btnElement) {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    textArea.style.position = "fixed"; // Hindari scroll ke bawah
+    textArea.style.opacity = "0";
+    document.body.appendChild(textArea);
+    textArea.select();
+    try {
+        document.execCommand('copy');
+        updateBtnStatus(btnElement);
+    } catch (err) {
+        alert("Gagal copy, silakan copy manual.");
+    }
+    document.body.removeChild(textArea);
+}
+
+function updateBtnStatus(btn) {
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '✅ Copied!';
+    btn.style.background = '#27ae60';
+    setTimeout(() => {
+        btn.innerHTML = originalText;
+        btn.style.background = ''; // Kembali ke warna asal CSS
+    }, 1500);
+}
+
+    function copyResultText() {
+        const text = document.getElementById('outputText').textContent;
+        copyText(text, document.getElementById('copyBtn'));
+    }
+
+// --- FETCH PELENGKAP (VERSI BERSIH) ---
+async function fetchPelengkap() {
+    const tableBody = document.getElementById('pelengkapTableBody');
+    tableBody.innerHTML = "<tr><td colspan='3' style='text-align:center'>Memuat data operasional...</td></tr>";
+    try {
+        const response = await fetch(GAS_URL + "?type=pelengkap&t=" + new Date().getTime());
+        const rawData = await response.json();
+        
+        // --- LOGIKA FILTER BARIS KOSONG ---
+        // Menghapus data yang kolom kendala & penjelasannya kosong
+        const data = rawData.filter(item => 
+            item.kendala.toString().trim() !== "" || 
+            item.penjelasan.toString().trim() !== ""
+        );
+
+        tableBody.innerHTML = "";
+        
+        data.forEach(item => {
+            tableBody.innerHTML += `<tr>
+                <td style="vertical-align: middle;"><b style="color:#2ecc71">${escapeHtml(item.kendala)}</b></td>
+                <td>
+                    <div style="max-height: 100px; overflow-y: auto; font-size: 12px; line-height: 1.4; color: #ecf0f1;">
+                        ${escapeHtml(item.penjelasan)}
+                    </div>
+                </td>
+                <td style="vertical-align: middle; text-align: center;">
+                    <button class="btn-copy-table" data-copy="${escapeHtml(item.penjelasan)}"
+                        onclick="copyText(this.dataset.copy, this)">
+                        Copy
+                    </button>
+                </td>
+            </tr>`;
+        });
+    } catch (e) { 
+        tableBody.innerHTML = "<tr><td colspan='3' style='text-align:center;color:red'>Gagal koneksi Cloud.</td></tr>"; 
+    }
+}
+
+// --- FETCH KESALAHAN OPERASIONAL (DATA DARI SHEET BERBEDA) ---
+async function fetchKesalahan() {
+    document.getElementById('searchKesalahan').value = "";
+    const tableBody = document.getElementById('kesalahanTableBody');
+    tableBody.innerHTML = "<tr><td colspan='4' style='text-align:center'>Mengambil data...</td></tr>";
+    
+    try {
+        const response = await fetch(GAS_URL + "?type=kesalahan&t=" + new Date().getTime());
+        const data = await response.json();
+        
+        tableBody.innerHTML = "";
+        
+        data.forEach(item => {
+            const ssContent = item.ss ? item.ss.toString() : "";
+
+            tableBody.innerHTML += `
+            <tr style="font-size: 11px;">
+                <td>${escapeHtml(item.tanggal || '-')}</td>
+                <td>${escapeHtml(item.nama || '-')}</td>
+                <td style="text-align: center;">
+                    ${ssContent ? `
+                        <button class="btn-copy-table" data-copy="${escapeHtml(ssContent)}" onclick="copyText(this.dataset.copy, this)">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    ` : '-'}
+                </td>
+                <td style="color: var(--primary-gold); font-weight: bold;">${escapeHtml(item.jenis || '-')}</td>
+                </tr>`;
+        });
+    } catch (e) { 
+        tableBody.innerHTML = `<tr><td colspan='4' style='text-align:center;color:#e74c3c'>Gagal: ${e.message}</td></tr>`; 
+    }
+}
+    // --- LOGIKA OCR ---
+    function updateAiAssistant(type, message) {
+    const assistant = document.getElementById('ai-assistant');
+    const robot = document.getElementById('ai-robot');
+    const bubble = document.getElementById('ai-bubble');
+
+    bubble.textContent = message;
+    
+    // Reset Class
+    robot.className = "robot-icon";
+    bubble.style.background = "#2c3e50";
+
+    if (type === 'error') {
+        robot.classList.add('panic-mode');
+        bubble.style.background = "#e74c3c"; // Merah
+    } else if (type === 'success') {
+        robot.classList.add('happy-mode');
+        bubble.style.background = "#27ae60"; // Hijau
+        // Kembali normal setelah 3 detik
+        setTimeout(() => { robot.className = "robot-icon"; }, 3000);
+    }
+}
+
+async function runOcr(file) {
+    const statusEl = document.getElementById('status');
+    const outputEl = document.getElementById('outputText');
+    
+    updateAiAssistant('normal', 'Sedang meneliti gambar...');
+
+    try {
+        const worker = await Tesseract.createWorker('eng');
+        await worker.setParameters({
+            tessedit_char_whitelist: '0123456789',
+        });
+
+        const { data: { text, confidence } } = await worker.recognize(file);
+        await worker.terminate();
+
+        const cleanedResult = text.replace(/\D/g, '');
+
+        // LOGIKA PENDETEKSI OTOMATIS
+        if (cleanedResult.length < 15) {
+            // DETEKSI: Angka terlalu sedikit (kemungkinan gambar blur/crop salah)
+            updateAiAssistant('error', 'Waduh, angkanya kurang lengkap! Coba screenshot ulang.');
+            outputEl.textContent = "Gagal Deteksi";
+        } 
+        else if (confidence < 80) {
+            // DETEKSI: AI ragu-ragu (gambar kurang tajam)
+            updateAiAssistant('error', 'Gambarnya agak blur nih, AI ragu membaca. Coba zoom dikit!');
+            outputEl.textContent = cleanedResult;
+        } 
+        else {
+            // DETEKSI: Kualitas Bagus
+            updateAiAssistant('success', 'MANTAP! Kualitas tajam, data berhasil disalin.');
+            outputEl.textContent = cleanedResult;
+            addToHistory(cleanedResult);
+            saveToCloud(cleanedResult);
+        }
+
+    } catch (err) {
+        updateAiAssistant('error', 'Sistem error, refresh halamannya ya!');
+    }
+}
+    // --- LOGIKA HISTORY (VERSI GALAK) ---
+    function addToHistory(code) {
+        let data = JSON.parse(localStorage.getItem('ocr_history')) || [];
+        data.unshift({ time: new Date().toLocaleTimeString(), code: code });
+        localStorage.setItem('ocr_history', JSON.stringify(data.slice(0, 15)));
+        renderHistory();
+    }
+
+    function renderHistory() {
+        const list = document.getElementById('historyList');
+        const data = JSON.parse(localStorage.getItem('ocr_history')) || [];
+        if (data.length === 0) {
+            list.innerHTML = "<p style='color:#666; font-size:12px; text-align:center;'>Belum ada riwayat.</p>";
+            return;
+        }
+        list.innerHTML = data.map(item => `
+            <div style="background:rgba(255,255,255,0.05); padding:10px; border-radius:8px; margin-bottom:8px; border-left:3px solid var(--primary-gold); display:flex; justify-content:space-between; align-items:center;">
+                <div><small style="color:#aaa;">${item.time}</small><br><strong>${item.code}</strong></div>
+                <button class="btn-copy-table" onclick="copyText('${item.code}', this)">Copy</button>
+            </div>
+        `).join('');
+    }
+
+    async function clearAllHistory() {
+        if (!confirm("Hapus semua riwayat permanen (Cloud & Lokal)?")) return;
+        
+        // Bersihkan Lokal
+        localStorage.removeItem('ocr_history');
+        renderHistory();
+        
+        // Bersihkan Cloud (Sesuai action di GAS)
+        try {
+            await fetch(GAS_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: 'clear' }) });
+            alert("History dibersihkan!");
+        } catch (e) { console.error("Cloud clear failed"); }
+    }
+
+    // Event Listeners
+    document.getElementById('imageInput').onchange = e => {
+        const file = e.target.files[0];
+        if(file) {
+            document.getElementById('uploadedImage').src = URL.createObjectURL(file);
+            document.getElementById('uploadedImage').style.display = 'block';
+            runOcr(file);
+        }
+    };
+
+    document.body.onpaste = e => {
+        const item = Array.from(e.clipboardData.items).find(x => x.type.indexOf('image') !== -1);
+        if (item) {
+            const file = item.getAsFile();
+            document.getElementById('uploadedImage').src = URL.createObjectURL(file);
+            document.getElementById('uploadedImage').style.display = 'block';
+            runOcr(file);
+        }
+    };
+
+    function bukaSemuaLink() {
+        const links = ['https://bk.augipt.com/depobos', 'https://bonussmb.com/tickets', 'https://depobos.idrbo1.com', 'https://admin.deposmb.com'];
+        links.forEach(url => window.open(url, '_blank'));
+    }
+// 1. Template Pesan Sesuai Aturan
+const messageTemplates = {
+  'Hadiah 4D Full': '🎉 Untuk Hadiah 4D jenis betingan Full, kemenangan anda adalah {value}.',
+  'Hadiah 3D Full': '🎉 Untuk Hadiah 3D jenis betingan Full, kemenangan anda adalah {value}.',
+  'Hadiah 2D Full': '🎉 Untuk Hadiah 2D jenis betingan Full, kemenangan anda adalah {value}.',
+  'Hadiah 4D Diskon': '🎉 Untuk Hadiah 4D jenis betingan Diskon, kemenangan anda adalah {value}.',
+  'Hadiah 3D Diskon': '🎉 Untuk Hadiah 3D jenis betingan Diskon, kemenangan anda adalah {value}.',
+  'Hadiah 2D Diskon': '🎉 Untuk Hadiah 2D Belakang jenis betingan Diskon, kemenangan anda adalah {value}.',
+  'Hadiah 2D Depan & Tengah': '🎉 Untuk Hadiah 2D (Depan & Tengah), kemenangan anda adalah {value}.',
+  'Hadiah 4D BB Tepat': '🎉 Untuk Hadiah 4D jenis betingan BB Tepat, kemenangan anda adalah {value}.',
+  'Hadiah 3D BB Tepat': '🎉 Untuk Hadiah 3D jenis betingan BB Tepat, kemenangan anda adalah {value}.',
+  'Hadiah 2D BB Tepat': '🎉 Untuk Hadiah 2D jenis betingan BB Tepat, kemenangan anda adalah {value}.',
+  'Hadiah 4D BB Tidak Tepat': '🎉 Untuk Hadiah 4D jenis betingan BB Tidak Tepat, kemenangan anda adalah {value}.',
+  'Hadiah 3D BB Tidak Tepat': '🎉 Untuk Hadiah 3D jenis betingan BB Tidak Tepat, kemenangan anda adalah {value}.',
+  'Hadiah 2D BB Tidak Tepat': '🎉 Untuk Hadiah 2D jenis betingan BB Tidak Tepat, kemenangan anda adalah {value}.',
+  'Hadiah 4D Prize1':  '🎉 Untuk Hadiah 4D jenis betingan Prize1, kemenangan anda adalah {value}.',
+  'Hadiah 3D Prize1': '🎉 Untuk Hadiah 3D jenis betingan Prize1, kemenangan anda adalah {value}.',
+  'Hadiah 2D Prize1': '🎉 Untuk Hadiah 2D jenis betingan Prize1, kemenangan anda adalah {value}.',
+  'Hadiah 4D Prize2': '🎉 Untuk Hadiah 4D jenis betingan Prize2, kemenangan anda adalah {value}.',
+  'Hadiah 3D Prize2': '🎉 Untuk Hadiah 3D jenis betingan Prize2, kemenangan anda adalah {value}.',
+  'Hadiah 2D Prize2': '🎉 Untuk Hadiah 2D jenis betingan Prize2, kemenangan anda adalah {value}.',
+  'Hadiah 4D Prize3': '🎉 Untuk Hadiah 4D jenis betingan Prize3, kemenangan anda adalah {value}.',
+  'Hadiah 3D Prize3': '🎉 Untuk Hadiah 3D jenis betingan Prize3, kemenangan anda adalah {value}.',
+  'Hadiah 2D Prize3': '🎉 Untuk Hadiah 2D jenis betingan Prize3, kemenangan anda adalah {value}.',
+  'Colok Bebas 1 Digit':            'Cara perhitungan Colok Bebas 1 Digit:\nNilai Bettingan x Nilai Hadiah + (Modal Betingan - 6%).\nJadi untuk kemenangan yang anda dapatkan sebesar {value}, sudah sesuai dengan yang tercatat pada history taruhan di akun bermain anda bosku.',
+  'Colok Bebas 2 Digit':            'Cara perhitungan Colok Bebas 2 Digit:\nNilai Bettingan x Nilai Hadiah + (Modal Betingan - 6%).\nJadi untuk kemenangan yang anda dapatkan sebesar {value}, sudah sesuai dengan yang tercatat pada history taruhan di akun bermain anda bosku.',
+  'Colok Bebas 3 Digit':            'Cara perhitungan Colok Bebas 3 Digit:\nNilai Bettingan x Nilai Hadiah + (Modal Betingan - 6%).\nJadi untuk kemenangan yang anda dapatkan sebesar {value}, sudah sesuai dengan yang tercatat pada history taruhan di akun bermain anda bosku.',
+  'Colok Bebas 4 Digit':            'Cara perhitungan Colok Bebas 4 Digit:\nNilai Bettingan x Nilai Hadiah + (Modal Betingan - 6%).\nJadi untuk kemenangan yang anda dapatkan sebesar {value}, sudah sesuai dengan yang tercatat pada history taruhan di akun bermain anda bosku.',
+  'Colok Bebas 2D 2 angka':          'Cara perhitungan Colok Bebas 2D 2 angka:\nNilai Bettingan x Nilai Hadiah + (Modal Betingan - 10%).\nJadi untuk kemenangan yang anda dapatkan sebesar {value}, sudah sesuai dengan yang tercatat pada history taruhan di akun bermain anda bosku.',
+  'Colok Bebas 2D 3 angka':          'Cara perhitungan Colok Bebas 2D 3 angka:\nNilai Bettingan x Nilai Hadiah + (Modal Betingan - 10%).\nJadi untuk kemenangan yang anda dapatkan sebesar {value}, sudah sesuai dengan yang tercatat pada history taruhan di akun bermain anda bosku.',
+  'Colok Bebas 2D 4 angka':          'Cara perhitungan Colok Bebas 2D 4 angka:\nNilai Bettingan x Nilai Hadiah + (Modal Betingan - 10%).\nJadi untuk kemenangan yang anda dapatkan sebesar {value}, sudah sesuai dengan yang tercatat pada history taruhan di akun bermain anda bosku.',
+  'Colok Naga (3 Angka)':            'Cara perhitungan Colok Naga (3 Angka):\nNilai Bettingan x Nilai Hadiah + (Modal Betingan - 10%).\nJadi untuk kemenangan yang anda dapatkan sebesar {value}, sudah sesuai dengan yang tercatat pada history taruhan di akun bermain anda bosku.',
+  'Colok Naga (4 Angka)':            'Cara perhitungan Colok Naga (4 Angka):\nNilai Bettingan x Nilai Hadiah + (Modal Betingan - 10%).\nJadi untuk kemenangan yang anda dapatkan sebesar {value}, sudah sesuai dengan yang tercatat pada history taruhan di akun bermain anda bosku.',
+  'Colok Jitu':                     'Cara perhitungan Colok Jitu:\nNilai Bettingan x Nilai Hadiah + (Modal Betingan - 6%).\nJadi untuk kemenangan yang anda dapatkan sebesar {value}, sudah sesuai dengan yang tercatat pada history taruhan di akun bermain anda bosku.'
+
+};
+
+function renderMessage(label, value) {
+    const tmpl = messageTemplates[label] || `🏆 Untuk ${label}, kemenangan anda adalah {value}.`;
+    return tmpl.replace('{value}', "Rp " + Math.floor(value).toLocaleString('id-ID'));
+}
+
+function calculate() {
+    const a = parseFloat(document.getElementById('nilaiA').value) || 0;
+    const type = document.getElementById('calcType').value;
+    const resultsArea = document.getElementById('calcResultsArea');
+    const results = [];
+
+    if (a <= 0 || type === "") {
+        resultsArea.innerHTML = "";
+        return;
+    }
+
+    switch (type) {
+    case 'full':
+      results.push({ label:'Hadiah 4D Full', value:10000*a });
+      results.push({ label:'Hadiah 3D Full', value:1000*a });
+      results.push({ label:'Hadiah 2D Full', value:100*a });
+      break;
+    case 'discount':
+      results.push({ label:'Hadiah 4D Diskon', value:3000*a });
+      results.push({ label:'Hadiah 3D Diskon', value:400*a });
+      results.push({ label:'Hadiah 2D Diskon', value:70*a });
+      results.push({ label:'Hadiah 2D Depan & Tengah', value:65*a });
+      break;
+    case 'bolakTepat':
+      results.push({ label:'Hadiah 4D BB Tepat', value:4000*a });
+      results.push({ label:'Hadiah 3D BB Tepat', value:400*a });
+      results.push({ label:'Hadiah 2D BB Tepat', value:70*a });
+      break;
+    case 'bolakTidak':
+      results.push({ label:'Hadiah 4D BB Tidak Tepat', value:200*a });
+      results.push({ label:'Hadiah 3D BB Tidak Tepat', value:100*a });
+      results.push({ label:'Hadiah 2D BB Tidak Tepat', value:20*a });
+      break;
+    case 'prize1':
+      results.push({ label:'Hadiah 4D Prize1', value:6500*a });
+      results.push({ label:'Hadiah 3D Prize1', value:650*a });
+      results.push({ label:'Hadiah 2D Prize1', value:70*a });
+      break;
+    case 'prize2':
+      results.push({ label:'Hadiah 4D Prize2', value:2100*a });
+      results.push({ label:'Hadiah 3D Prize2', value:210*a });
+      results.push({ label:'Hadiah 2D Prize2', value:20*a });
+      break;
+    case 'prize3':
+      results.push({ label:'Hadiah 4D Prize3', value:1100*a });
+      results.push({ label:'Hadiah 3D Prize3', value:110*a });
+      results.push({ label:'Hadiah 2D Prize3', value:8*a });
+      break;
+    case 'colok':
+      for (let i=1;i<=4;i++){
+        results.push({
+          label:`Colok Bebas ${i} Digit`,
+          value: Math.pow(1.5,i)*a + (a*0.94)
+        });
+      }
+      [2,3,4].forEach(n=>{
+        results.push({
+          label:`Colok Bebas 2D ${n} angka`,
+          value:(n===2?7:(n===3?11:18))*a + (a*0.90)
+        });
+      });
+      [3,4].forEach(n=>{
+        results.push({
+          label:`Colok Naga (${n} Angka)`,
+          value:(n===3?23:35)*a + (a*0.90)
+        });
+      });
+      results.push({ label:'Colok Jitu', value:8*a + (a*0.94) });
+      results.push({ label:'Shio',        value:9.5*a + (a*0.95) });
+      break;
+        // Tambahkan case lainnya (prize1, prize2, dll) sesuai kebutuhan Anda
+    }
+
+// Render ke layar
+resultsArea.innerHTML = results.map(res => `
+    <div class="result-card">
+        <p class="result-text" style="font-size: 13px; color: #ecf0f1; margin: 0; line-height: 1.5; white-space: pre-line;">
+            ${renderMessage(res.label, res.value)}
+        </p>
+        <button class="btn-copy-table" style="margin-top:12px; width: 100%;" 
+                onclick="copyText(\`${renderMessage(res.label, res.value)}\`, this)">
+            Salin Pesan Kemenangan
+        </button>
+    </div>
+`).join('');
+}
+
+    window.onload = renderHistory;
+    
+function changeTheme(element) {
+    const newBg = element.getAttribute('data-bg');
+    const defaultBg = "https://i.imgur.com/ydxRdvB.gif";
+
+    // Fungsi internal untuk menerapkan background secara sempurna
+    const applyBackground = (url) => {
+        document.body.style.backgroundImage = `url('${url}')`;
+        document.body.style.backgroundSize = "cover";       // WAJIB
+        document.body.style.backgroundPosition = "center";  // WAJIB
+        document.body.style.backgroundAttachment = "fixed"; // WAJIB
+        document.body.style.backgroundRepeat = "no-repeat"; // WAJIB
+    };
+
+    if (newBg === "DEFAULT") {
+        applyBackground(defaultBg);
+        localStorage.removeItem('userTheme');
+    } else {
+        applyBackground(newBg);
+        localStorage.setItem('userTheme', newBg);
+    }
+    
+    // Logika border ikon tetap sama
+    document.querySelectorAll('.icon-item img').forEach(img => {
+        img.style.borderColor = "var(--primary-gold)";
+    });
+    element.querySelector('img').style.borderColor = "var(--success-green)";
+}
+
+let lastSavedCode = ""; // Anti-Duplicate
+
+async function saveToCloud(code) {
+    // 1. Cek Duplikat
+    if (code === lastSavedCode) return;
+
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbyrDyClaulM917fSvOPEP4pTOkZo4ZOrAkt-3dTM0DeTVsH7vIoZipwkKOIV33PC0WE/exec';
+    
+    // 2. Format data sesuai kebutuhan JSON.parse di Apps Script
+    const payload = {
+        action: "add",
+        code: code
+    };
+
+    try {
+        const response = await fetch(scriptURL, {
+            method: 'POST',
+            mode: 'no-cors', // Tetap gunakan no-cors untuk lingkungan kantor
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        });
+
+        // Jika sampai sini, anggap berhasil karena mode no-cors tidak bisa membaca respon
+        lastSavedCode = code;
+        console.log("Data dikirim ke Cloud: " + code);
+        
+    } catch (error) {
+        console.error("Gagal mengirim ke Cloud:", error);
+    }
+}
+
+
+// --- TARUH INI DI BAGIAN PALING BAWAH SCRIPT.JS ---
+
+// Tambahkan atau Ganti bagian ini di script.js Anda
+window.addEventListener('load', function() {
+    // 1. Ambil perintah dari URL (misal: #absensi)
+    const hash = window.location.hash.substring(1); 
+
+    // 2. Logika Penanganan Layar Blank
+    if (hash === 'absensi') {
+        // Jika ada #absensi di URL, paksa tampilkan section tersebut
+        showSection('absensi');
+    } else {
+        // Jika tidak ada hash (akses langsung), default ke absen agar tidak blank
+        showSection('absensi');
+    }
+
+});
+
+function toggleChat() {
+    document.getElementById('ai-chat-window').classList.toggle('chat-hidden');
+}
+
+// Load catatan saat halaman dibuka
+document.addEventListener('DOMContentLoaded', () => {
+    displayNotes();
+});
+
+function handleKeyPress(event) {
+    if (event.key === 'Enter') {
+        addQuickNote();
+    }
+}
+
+function addQuickNote() {
+    const input = document.getElementById('user-input');
+    const noteText = input.value.trim();
+    
+    if (noteText === "") return;
+
+    // Ambil data catatan yang sudah ada di LocalStorage
+    const savedNotes = JSON.parse(localStorage.getItem('my_task_notes')) || [];
+    
+    // Buat objek catatan baru
+    const newNote = {
+        text: noteText,
+        time: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+    };
+
+    // Simpan ke array dan LocalStorage
+    savedNotes.push(newNote);
+    localStorage.setItem('my_task_notes', JSON.stringify(savedNotes));
+
+    input.value = ""; // Kosongkan input
+    displayNotes(); // Refresh tampilan
+}
+
+function displayNotes() {
+    const container = document.getElementById('chat-messages');
+    const savedNotes = JSON.parse(localStorage.getItem('my_task_notes')) || [];
+    
+    if (savedNotes.length === 0) {
+        container.innerHTML = `<div style="text-align:center; color:#555; font-size:12px; margin-top:50px;">Belum ada percakapan/catatan.</div>`;
+        return;
+    }
+
+    container.innerHTML = savedNotes.map((note) => `
+        <div class="note-bubble">
+            <span class="note-content">${note.text}</span>
+            <span class="note-meta">${note.time} <i class="fas fa-check-double"></i></span>
+        </div>
+    `).join('');
+
+    // Selalu scroll ke paling bawah setiap ada pesan baru
+    container.scrollTop = container.scrollHeight;
+}
+
+function clearNotes() {
+    Swal.fire({
+        title: 'HAPUS SEMUA?',
+        text: "Semua catatan percakapan akan dibersihkan secara permanen.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#e74c3c', // Warna merah untuk hapus
+        cancelButtonColor: '#333',
+        confirmButtonText: 'Ya, Hapus!',
+        cancelButtonText: 'Batal',
+        background: '#1a1a1a',
+        color: '#fff'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // 1. Hapus dari LocalStorage
+            localStorage.removeItem('my_task_notes');
+            
+            // 2. Refresh tampilan chat
+            displayNotes();
+
+            // 3. Notifikasi sukses kecil (Toast)
+            const Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 2000,
+                background: '#1a1a1a',
+                color: '#fff'
+            });
+            Toast.fire({
+                icon: 'success',
+                title: 'Catatan telah dibersihkan'
+            });
+        }
+    });
+}
+
+// --- LOGIKA LOGOUT & ABSEN KELUAR ---
+
+// Fungsi Logout dengan JSON
+async function handleLogout() {
+    // 1. Konfirmasi User
+    const result = await Swal.fire({
+        title: 'Yakin ingin keluar?',
+        text: "Sistem akan mencatat waktu selesai tugas Anda.",
+        icon: 'warning',
+        background: '#1a1a1a',
+        color: '#fff',
+        showCancelButton: true,
+        confirmButtonColor: '#e74c3c',
+        cancelButtonColor: '#333',
+        confirmButtonText: 'Ya, Logout',
+        cancelButtonText: 'Batal'
+    });
+
+    if (result.isConfirmed) {
+        // 2. Loading...
+        Swal.fire({
+            title: 'Menyimpan Data...',
+            text: 'Sedang mencatat log keluar...',
+            allowOutsideClick: false,
+            didOpen: () => { Swal.showLoading() },
+            background: '#1a1a1a',
+            color: '#fff'
+        });
+
+        try {
+            // 3. Kirim ke Google Apps Script (Format JSON)
+            await fetch(GAS_URL, {
+                method: "POST",
+                headers: { "Content-Type": "text/plain" }, // Gunakan text/plain agar tidak kena CORS preflight
+                body: JSON.stringify({
+                    action: "keluar",
+                    nama: "RIZKY SYAIFULLAH" // Ganti sesuai nama user login
+                })
+            });
+
+            // 4. Hapus data sesi lokal (opsional)
+            localStorage.removeItem('lastAbsenDate'); 
+
+            // 5. Sukses & Redirect ke Auth
+            Swal.fire({
+                icon: 'success',
+                title: 'SAMPAI JUMPA',
+                text: 'Sesi Anda telah berakhir.',
+                showConfirmButton: false,
+                timer: 1500,
+                background: '#1a1a1a',
+                color: '#fff'
+            }).then(() => {
+                window.location.href = "auth.html"; // Kembali ke halaman Login
+            });
+
+        } catch (error) {
+            console.error("Gagal Logout:", error);
+            // Tetap logout meski internet error (Opsional)
+            window.location.href = "auth.html";
+        }
+    }
+}
+
+function globalFilterKesalahan() {
+    // 1. Ambil kata kunci pencarian
+    const input = document.getElementById("searchKesalahan");
+    const filter = input.value.toLowerCase();
+    const table = document.getElementById("kesalahanTableBody");
+    const tr = table.getElementsByTagName("tr");
+
+    // 2. Loop melalui setiap baris tabel
+    for (let i = 0; i < tr.length; i++) {
+        // Lewati jika baris menampilkan pesan "Menunggu data" atau "Data Kosong"
+        if (tr[i].cells.length < 4) continue; 
+
+        // Ambil semua teks dari baris tersebut (Tanggal + Nama + Link + Jenis)
+        const rowText = tr[i].textContent || tr[i].innerText;
+        
+        // 3. Jika kata kunci ditemukan di bagian mana saja dalam baris tersebut
+        if (rowText.toLowerCase().indexOf(filter) > -1) {
+            tr[i].style.display = ""; // Tampilkan
+        } else {
+            tr[i].style.display = "none"; // Sembunyikan
+        }
+    }
+}
+
+function generateTogel() {
+    const pasaran = document.getElementById('pasaranSelect').value;
+    const tableBody = document.getElementById('togelTableBody');
+    
+    if (!pasaran) {
+        tableBody.innerHTML = '<tr><td colspan="3" style="text-align:center; color: #888;">Silahkan pilih pasaran di atas...</td></tr>';
+        return;
+    }
+
+    // Fungsi: Angka Unik (Tanpa Kembar) - Cocok untuk BBFS/AI/Macau
+    const getUniqueNumbers = (count) => {
+        let nums = [];
+        while(nums.length < count){
+            let r = Math.floor(Math.random() * 10);
+            if(nums.indexOf(r) === -1) nums.push(r);
+        }
+        return nums.join('');
+    };
+
+    // Fungsi: Angka Acak (Boleh Kembar) - Cocok untuk 4D/3D/2D
+    const getRandomDigits = (count) => {
+        let res = "";
+        for(let i=0; i<count; i++) res += Math.floor(Math.random() * 10);
+        return res;
+    };
+
+    // Logika Khusus Twin
+    const twinDigit = Math.floor(Math.random() * 10);
+    const angkaTwin = `${twinDigit}${twinDigit} / ${Math.floor(Math.random()*10)}${Math.floor(Math.random()*10)}`;
+
+    // Data Prediksi Baru Sesuai Permintaan Anda
+    const dataPrediksi = [
+        { tipe: "BBFS KUAT", angka: getUniqueNumbers(6) },
+        { tipe: "ANGKA IKUT", angka: getUniqueNumbers(4) },
+        { tipe: "4D (BB)", angka: getRandomDigits(4) },
+        { tipe: "3D (BB)", angka: getRandomDigits(3) },
+        { tipe: "2D (BB)", angka: getRandomDigits(2) },
+        { tipe: "COLOK BEBAS", angka: getRandomDigits(1) },
+        { tipe: "COLOK MACAU", angka: getUniqueNumbers(2).split('').join(' - ') },
+        { tipe: "ANGKA TWIN", angka: `${twinDigit}${twinDigit}` }
+    ];
+
+    // Tampilkan ke Tabel
+    tableBody.innerHTML = "";
+    dataPrediksi.forEach(item => {
+        tableBody.innerHTML += `
+        <tr>
+            <td style="font-weight: bold; color: #bdc3c7; font-size: 11px;">${item.tipe}</td>
+            <td style="color: var(--primary-gold); font-family: 'Courier New', monospace; font-size: 16px; letter-spacing: 2px; font-weight: bold;">
+                ${item.angka}
+            </td>
+            <td style="text-align: center;">
+                <button class="btn-copy-table" onclick="copyText('${item.angka}', this)">
+                    <i class="fas fa-copy"></i>
+                </button>
+            </td>
+        </tr>`;
+    });
+}
+
+// --- LOGIKA DASHBOARD FREE SPIN ---
+
+function calculateFreeSpin() {
+    const inputArea = document.getElementById('inputDataFreeSpin');
+    const totalDisplay = document.getElementById('totalAmountFreeSpin');
+    const listDisplay = document.getElementById('breakdownListFreeSpin');
+    
+    // Ambil teks dan hapus semua spasi/baris baru agar menjadi satu baris utuh
+    const text = inputArea.value.replace(/\s+/g, '');
+    
+    // REGEX Baru: Mencari 'Pembayaran0.00' lalu mengambil angka hingga menemukan dua digit setelah titik
+    // Pola ini akan berhenti tepat di .00 meskipun setelahnya ada angka saldo yang menempel
+    const regex = /Pembayaran0\.00([\d,]+\.\d{2})/g;
+    
+    let match;
+    let total = 0;
+    let count = 0;
+    let listHtml = '';
+
+    while ((match = regex.exec(text)) !== null) {
+        let nominalRaw = match[1]; 
+        
+        // Hilangkan koma agar bisa dihitung
+        let nominalClean = parseFloat(nominalRaw.replace(/,/g, ''));
+
+        if (!isNaN(nominalClean) && nominalClean > 0) {
+            total += nominalClean;
+            count++;
+            listHtml += `
+                <li style="padding: 8px 0; border-bottom: 1px solid #333; display: flex; justify-content: space-between; font-family: monospace;">
+                    <span>Data #${count}</span>
+                    <span style="color: var(--primary-gold); font-weight: bold;">+ ${nominalClean.toLocaleString('id-ID')}</span>
+                </li>`;
+        }
+    }
+
+    if (count === 0) {
+        listDisplay.innerHTML = '<li style="color:#e74c3c; font-style:italic; font-size:12px;">Data tidak terbaca. Pastikan terdapat kata "Pembayaran0.00"</li>';
+        totalDisplay.textContent = 'IDR 0';
+    } else {
+        listDisplay.innerHTML = listHtml;
+        // Total akhir
+        totalDisplay.textContent = 'IDR ' + total.toLocaleString('en-US');
+        
+        // Tambahkan log di console untuk cek manual jika ragu
+        console.log("Total Item Ditemukan:", count);
+        console.log("Total Nominal:", total);
+    }
+}
+
+function resetFreeSpin() {
+    document.getElementById('inputDataFreeSpin').value = '';
+    document.getElementById('totalAmountFreeSpin').textContent = 'IDR 0,000';
+    document.getElementById('breakdownListFreeSpin').innerHTML = '<li style="color:#666; font-style:italic;">Data akan muncul di sini...</li>';
+}
+
+// Pastikan showSection bisa mengenali ID baru
+// Update fungsi showSection Anda yang sudah ada untuk menambahkan reset atau trigger khusus jika perlu
+
+// ════════════════════════════════════════════════════════════════════
+// PASSWORD GENERATOR — Functions
+// ════════════════════════════════════════════════════════════════════
+
+/**
+ * updateLengthDisplay()
+ * ─────────────────────
+ * Memperbarui teks angka di sebelah label slider secara live.
+ * Dipanggil via oninput pada elemen <input type="range">.
+ */
+function updateLengthDisplay() {
+    const sliderVal = document.getElementById('passgen-length').value;
+    document.getElementById('passgen-len-display').textContent = sliderVal;
+}
+
+
+/**
+ * generatePassword()
+ * ──────────────────
+ * Fungsi utama: membangun password acak berdasarkan pilihan checkbox
+ * dan panjang dari slider. Menggunakan teknik "guaranteed character"
+ * agar setiap tipe karakter yang diaktifkan pasti muncul minimal 1x,
+ * kemudian posisi dikacak agar tidak mudah ditebak.
+ *
+ * Dipanggil oleh:
+ *   - Tombol "GENERATE PASSWORD" (onclick)
+ *   - Setiap perubahan checkbox (onchange)
+ *   - Pergeseran slider (oninput)
+ */
+function generatePassword() {
+    const length     = parseInt(document.getElementById('passgen-length').value);
+    const useUpper   = document.getElementById('opt-uppercase').checked;
+    const useLower   = document.getElementById('opt-lowercase').checked;
+    const useNumbers = document.getElementById('opt-numbers').checked;
+    const useSymbols = document.getElementById('opt-symbols').checked;
+
+    const outputEl = document.getElementById('passgen-output');
+
+    // ── Validasi: minimal 1 opsi harus dipilih ──
+    if (!useUpper && !useLower && !useNumbers && !useSymbols) {
+        outputEl.textContent = '⚠️ Pilih minimal satu opsi!';
+        document.getElementById('passgen-strength-fill').style.width = '0%';
+        document.getElementById('passgen-strength-label').textContent = '—';
+        document.getElementById('passgen-strength-label').style.color = '#888';
+        return;
+    }
+
+    // ── Kumpulan karakter untuk setiap tipe ──
+    const CHAR = {
+        upper:   'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+        lower:   'abcdefghijklmnopqrstuvwxyz',
+        numbers: '0123456789',
+        symbols: '!@#$%^&*()_+-=[]{}|;:,.<>?'
+    };
+
+    let fullCharset = ''; // Gabungan semua charset yang aktif
+    let guaranteed  = []; // Simpan 1 karakter pasti dari setiap tipe aktif
+
+    // Bangun charset & ambil 1 karakter terjamin dari tiap tipe aktif
+    if (useUpper) {
+        fullCharset += CHAR.upper;
+        guaranteed.push(CHAR.upper[Math.floor(Math.random() * CHAR.upper.length)]);
+    }
+    if (useLower) {
+        fullCharset += CHAR.lower;
+        guaranteed.push(CHAR.lower[Math.floor(Math.random() * CHAR.lower.length)]);
+    }
+    if (useNumbers) {
+        fullCharset += CHAR.numbers;
+        guaranteed.push(CHAR.numbers[Math.floor(Math.random() * CHAR.numbers.length)]);
+    }
+    if (useSymbols) {
+        fullCharset += CHAR.symbols;
+        guaranteed.push(CHAR.symbols[Math.floor(Math.random() * CHAR.symbols.length)]);
+    }
+
+    // Isi sisa karakter dari gabungan charset
+    let passwordArr = [...guaranteed];
+    for (let i = guaranteed.length; i < length; i++) {
+        passwordArr.push(fullCharset[Math.floor(Math.random() * fullCharset.length)]);
+    }
+
+    // Kacak urutan agar karakter 'guaranteed' tidak selalu di posisi awal
+    const password = passwordArr
+        .sort(() => Math.random() - 0.5)
+        .join('');
+
+    // Tampilkan ke layar
+    outputEl.textContent = password;
+    syncPasslogField(password);
+
+    // Perbarui indikator kekuatan
+    updatePassStrength(password, useUpper, useLower, useNumbers, useSymbols);
+
+    // Reset tombol Salin ke state semula (jika sebelumnya sudah diklik)
+    const copyBtn = document.getElementById('passgen-copy-btn');
+    copyBtn.innerHTML = '<i class="fas fa-copy"></i> Salin';
+    copyBtn.classList.remove('passgen-copied');
+}
+
+
+/**
+ * updatePassStrength(password, ...flags)
+ * ───────────────────────────────────────
+ * Menghitung skor kekuatan password berdasarkan dua faktor:
+ *   1. Panjang: +1 jika >= 12 karakter, +1 lagi jika >= 20 karakter
+ *   2. Variasi: jumlah tipe karakter aktif - 1 (min 0, max 3)
+ *
+ * Total skor maksimal: 5
+ *   ≤ 1 = Lemah  (merah,  33%)
+ *   2-3 = Sedang (oranye, 66%)
+ *   4-5 = Kuat   (hijau, 100%)
+ */
+function updatePassStrength(password, useUpper, useLower, useNumbers, useSymbols) {
+    let score = 0;
+
+    // Penilaian dari panjang
+    if (password.length >= 12) score += 1;
+    if (password.length >= 20) score += 1;
+
+    // Penilaian dari jumlah tipe karakter yang aktif
+    const typesActive = [useUpper, useLower, useNumbers, useSymbols].filter(Boolean).length;
+    score += (typesActive - 1); // 1 tipe = +0, 2 tipe = +1, 3 tipe = +2, 4 tipe = +3
+
+    const fillEl  = document.getElementById('passgen-strength-fill');
+    const labelEl = document.getElementById('passgen-strength-label');
+
+    if (score <= 1) {
+        // Lemah
+        fillEl.style.width      = '33%';
+        fillEl.style.background = '#e74c3c';
+        labelEl.textContent     = '🔴 Lemah';
+        labelEl.style.color     = '#e74c3c';
+    } else if (score <= 3) {
+        // Sedang
+        fillEl.style.width      = '66%';
+        fillEl.style.background = '#f39c12';
+        labelEl.textContent     = '🟡 Sedang';
+        labelEl.style.color     = '#f39c12';
+    } else {
+        // Kuat
+        fillEl.style.width      = '100%';
+        fillEl.style.background = '#2ecc71';
+        labelEl.textContent     = '🟢 Kuat';
+        labelEl.style.color     = '#2ecc71';
+    }
+}
+
+
+/**
+ * copyPassword()
+ * ──────────────
+ * Menyalin password ke clipboard menggunakan fungsi copyText() yang
+ * sudah ada di script.js. Fungsi updateBtnStatus() (dari script.js)
+ * akan otomatis menangani efek visual "✅ Copied!" pada tombol.
+ *
+ * Tidak akan berjalan jika password belum di-generate.
+ */
+function copyPassword() {
+    const passText = document.getElementById('passgen-output').textContent;
+
+    // Jangan salin jika belum di-generate atau ada pesan error
+    if (!passText || passText === 'Klik Generate...' || passText.includes('⚠️')) return;
+
+    // Gunakan copyText() yang sudah ada — akan memanggil updateBtnStatus() otomatis
+    copyText(passText, document.getElementById('passgen-copy-btn'));
+}
+
+// ════════════════════════════════════════════════════════════════════
+// SAVE LOG — Semua fungsi baru untuk panel catatan password
+// ════════════════════════════════════════════════════════════════════
+
+/** Kunci LocalStorage untuk menyimpan array catatan password */
+const PASSLOG_KEY = 'passgen_save_log';
+
+
+/**
+ * syncPasslogField(password)
+ * ──────────────────────────
+ * Dipanggil oleh generatePassword() setiap kali password baru dibuat.
+ * Mengisi input #passlog-password di panel kanan secara otomatis dan
+ * memberikan efek glow singkat sebagai sinyal visual "baru di-sync".
+ *
+ * @param {string} password - Password yang baru saja di-generate
+ */
+function syncPasslogField(password) {
+    const field = document.getElementById('passlog-password');
+    if (!field) return; // Guard: panel mungkin belum ada di DOM
+
+    field.value = password;
+
+    // Restart animasi glow: hapus class dulu, paksa reflow, lalu tambah kembali
+    field.classList.remove('passlog-synced');
+    void field.offsetWidth; // reflow trick
+    field.classList.add('passlog-synced');
+
+    // Hapus class setelah animasi selesai (0.9s sesuai @keyframes passlogGlow)
+    setTimeout(() => field.classList.remove('passlog-synced'), 950);
+}
+
+
+/**
+ * saveNote()
+ * ──────────
+ * Dipanggil oleh tombol "SIMPAN CATATAN".
+ * Membaca nilai User ID dan Password dari form, memvalidasinya,
+ * lalu menyimpan ke LocalStorage dan me-refresh tampilan daftar log.
+ * Memberikan visual feedback (tombol berubah hijau) saat berhasil.
+ */
+function saveNote() {
+    const userIdEl   = document.getElementById('passlog-userid');
+    const passwordEl = document.getElementById('passlog-password');
+
+    const userId   = userIdEl.value.trim();
+    const password = passwordEl.value.trim();
+
+    // ── Validasi: User ID tidak boleh kosong ──
+    if (!userId) {
+        userIdEl.focus();
+        // Efek border merah singkat sebagai feedback error
+        userIdEl.style.borderColor = '#e74c3c';
+        userIdEl.style.boxShadow   = '0 0 8px rgba(231,76,60,0.35)';
+        setTimeout(() => {
+            userIdEl.style.borderColor = '';
+            userIdEl.style.boxShadow   = '';
+        }, 1600);
+        return;
+    }
+
+    // ── Validasi: Password tidak boleh kosong ──
+    if (!password) {
+        passwordEl.focus();
+        passwordEl.style.borderColor = '#e74c3c';
+        passwordEl.style.boxShadow   = '0 0 8px rgba(231,76,60,0.35)';
+        setTimeout(() => {
+            passwordEl.style.borderColor = '';
+            passwordEl.style.boxShadow   = '';
+        }, 1600);
+        return;
+    }
+
+    // ── Buat objek catatan baru ──
+    const notes   = getNotesFromStorage();
+    const newNote = {
+        id: Date.now().toString(), // ID unik berbasis timestamp Unix
+        userId:    userId,
+        password:  password,
+        timestamp: new Date().toLocaleString('id-ID', {
+            day: '2-digit', month: 'short', year: 'numeric',
+            hour: '2-digit', minute: '2-digit'
+        })
+    };
+
+    // Tambahkan di awal array (catatan terbaru muncul di atas)
+    notes.unshift(newNote);
+    saveNotesToStorage(notes);
+
+    // Bersihkan input User ID (Password dibiarkan untuk referensi)
+    userIdEl.value = '';
+
+    // Refresh tampilan daftar log
+    renderNotes();
+
+    // ── Feedback visual pada tombol Simpan ──
+    const btn = document.querySelector('.passlog-btn-save');
+    if (btn) {
+        const orig = btn.innerHTML;
+        btn.innerHTML    = '<i class="fas fa-check"></i>&nbsp; Tersimpan!';
+        btn.style.background    = 'var(--success-green)';
+        btn.style.color         = '#111';
+        btn.style.borderColor   = 'var(--success-green)';
+        setTimeout(() => {
+            btn.innerHTML         = orig;
+            btn.style.background  = '';
+            btn.style.color       = '';
+            btn.style.borderColor = '';
+        }, 1600);
+    }
+}
+
+
+/**
+ * renderNotes()
+ * ─────────────
+ * Membaca semua catatan dari LocalStorage lalu merender ulang
+ * seluruh isi #passlog-list. Dipanggil setiap kali data berubah:
+ * halaman dimuat, catatan disimpan, atau catatan dihapus.
+ */
+function renderNotes() {
+    const listEl       = document.getElementById('passlog-list');
+    const countEl      = document.getElementById('passlog-count');
+    const clearAllBtn  = document.getElementById('passlog-clear-all-btn');
+
+    if (!listEl) return; // Guard: section belum aktif/di DOM
+
+    const notes = getNotesFromStorage();
+
+    // Update counter badge
+    if (countEl) countEl.textContent = notes.length + ' catatan';
+
+    // Tampilkan/sembunyikan tombol "hapus semua"
+    if (clearAllBtn) {
+        clearAllBtn.style.display = notes.length > 0 ? 'flex' : 'none';
+    }
+
+    // ── Empty state ──
+    if (notes.length === 0) {
+        listEl.innerHTML = `
+            <div class="passlog-empty">
+                <i class="fas fa-lock"
+                   style="font-size:26px; opacity:0.2; display:block; margin-bottom:10px;"></i>
+                Belum ada catatan tersimpan.<br>
+                Generate password lalu klik Simpan.
+            </div>`;
+        return;
+    }
+
+    // ── Render setiap item ──
+    listEl.innerHTML = notes.map(note => {
+        // Tampilkan dots sebagai mask default (max 14 karakter)
+        const masked = '●'.repeat(Math.min(note.password.length, 14));
+
+        return `
+        <div class="passlog-item" id="passlog-note-${note.id}">
+
+            <!-- Baris atas: User ID + Waktu Simpan -->
+            <div class="passlog-item-header">
+                <span class="passlog-item-userid">
+                    <i class="fas fa-user-circle"></i>${escapeHtml(note.userId)}
+                </span>
+                <span class="passlog-item-time">${note.timestamp}</span>
+            </div>
+
+            <!-- Baris bawah: Password (masked) + Tombol Aksi -->
+            <div class="passlog-item-pass-row">
+                <!--
+                    data-pass menyimpan password asli.
+                    data-hidden mengontrol mode tampil/sembunyikan.
+                    Aman dari XSS karena sudah di-escape via escapeHtml().
+                -->
+                <span
+                    class="passlog-item-pass"
+                    id="passlog-pass-${note.id}"
+                    data-pass="${escapeHtml(note.password)}"
+                    data-hidden="true"
+                    title="Klik 👁 untuk tampilkan"
+                >${masked}</span>
+
+                <div class="passlog-item-actions">
+                    <!-- Toggle tampil/sembunyikan password -->
+                    <button
+                        class="passlog-action-btn"
+                        id="passlog-eye-${note.id}"
+                        onclick="toggleNotePassword('${note.id}')"
+                        title="Tampilkan / Sembunyikan"
+                    ><i class="fas fa-eye"></i></button>
+
+                    <!-- Salin password ke clipboard -->
+                    <button
+                        class="passlog-action-btn passlog-action-copy"
+                        onclick="copyNotePassword('${note.id}', this)"
+                        title="Salin Password"
+                    ><i class="fas fa-copy"></i></button>
+
+                    <!-- Hapus catatan ini -->
+                    <button
+                        class="passlog-action-btn passlog-action-delete"
+                        onclick="deleteNote('${note.id}')"
+                        title="Hapus Catatan"
+                    ><i class="fas fa-trash-alt"></i></button>
+                </div>
+            </div>
+
+        </div>`;
+    }).join('');
+}
+
+
+/**
+ * toggleNotePassword(noteId)
+ * ──────────────────────────
+ * Menampilkan atau menyembunyikan password pada item log tertentu.
+ * Membaca password asli dari atribut data-pass (sudah di-escape di render).
+ *
+ * @param {string} noteId - ID unik catatan yang hendak di-toggle
+ */
+function toggleNotePassword(noteId) {
+    const passEl = document.getElementById('passlog-pass-' + noteId);
+    const eyeBtn = document.getElementById('passlog-eye-'  + noteId);
+    if (!passEl || !eyeBtn) return;
+
+    const isHidden   = passEl.dataset.hidden === 'true';
+    const actualPass = passEl.dataset.pass; // Diambil dari data attribute
+
+    if (isHidden) {
+        // Tampilkan password asli
+        passEl.textContent       = actualPass;
+        passEl.dataset.hidden    = 'false';
+        eyeBtn.innerHTML         = '<i class="fas fa-eye-slash"></i>';
+    } else {
+        // Sembunyikan kembali ke dots
+        passEl.textContent       = '●'.repeat(Math.min(actualPass.length, 14));
+        passEl.dataset.hidden    = 'true';
+        eyeBtn.innerHTML         = '<i class="fas fa-eye"></i>';
+    }
+}
+
+
+/**
+ * copyNotePassword(noteId, btn)
+ * ─────────────────────────────
+ * Menyalin password dari item log ke clipboard.
+ * Menggunakan copyText() yang sudah ada di script.js —
+ * sehingga efek visual "✅ Copied!" konsisten dengan tombol salin lain.
+ *
+ * @param {string}      noteId - ID unik catatan
+ * @param {HTMLElement} btn    - Elemen tombol yang diklik
+ */
+function copyNotePassword(noteId, btn) {
+    // Ambil data lengkap dari LocalStorage berdasarkan ID
+    // agar User ID tidak terpotong (text-overflow: ellipsis di DOM)
+    const notes = getNotesFromStorage();
+    const note  = notes.find(n => n.id === noteId);
+    if (!note) return;
+
+    // Format hasil salinan sesuai template yang diminta
+    const formattedText =
+        `User ID : ${note.userId}\n` +
+        `Password : ${note.password}\n\n` +
+        `Silahkan dicoba login dan segera diganti passwordnya ya bosku`;
+        
+
+    copyText(formattedText, btn); // efek "✅ Copied!" tetap berjalan via updateBtnStatus()
+}
+
+
+/**
+ * deleteNote(noteId)
+ * ──────────────────
+ * Menghapus satu catatan berdasarkan ID dari LocalStorage
+ * lalu me-refresh tampilan list.
+ *
+ * @param {string} noteId - ID unik catatan yang akan dihapus
+ */
+function deleteNote(noteId) {
+    let notes = getNotesFromStorage();
+    notes     = notes.filter(n => n.id !== noteId);
+    saveNotesToStorage(notes);
+    renderNotes();
+}
+
+
+/**
+ * clearAllNotes()
+ * ───────────────
+ * Menghapus SEMUA catatan setelah konfirmasi via SweetAlert2
+ * (konsisten dengan pola konfirmasi yang sudah ada di proyek).
+ */
+function clearAllNotes() {
+    Swal.fire({
+        title:              'Hapus Semua Catatan?',
+        text:               'Seluruh data catatan akan dihapus secara permanen.',
+        icon:               'warning',
+        showCancelButton:   true,
+        confirmButtonColor: '#e74c3c',
+        cancelButtonColor:  '#333',
+        confirmButtonText:  'Ya, Hapus!',
+        cancelButtonText:   'Batal',
+        background:         '#1a1a1a',
+        color:              '#fff'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            localStorage.removeItem(PASSLOG_KEY);
+            renderNotes();
+        }
+    });
+}
+
+
+/* ── HELPER FUNCTIONS ──────────────────────────────────────────────── */
+
+/**
+ * escapeHtml(str)
+ * ───────────────
+ * Meng-escape karakter HTML khusus untuk mencegah XSS ketika
+ * data dari user (User ID / Password) dimasukkan ke innerHTML.
+ *
+ * @param  {string} str - String yang akan di-escape
+ * @return {string}     - String yang aman untuk dimasukkan ke HTML
+ */
+function escapeHtml(str) {
+    return String(str)
+        .replace(/&/g,  '&amp;')
+        .replace(/</g,  '&lt;')
+        .replace(/>/g,  '&gt;')
+        .replace(/"/g,  '&quot;')
+        .replace(/'/g,  '&#039;');
+}
+
+/**
+ * getNotesFromStorage()
+ * ─────────────────────
+ * Membaca dan mem-parse array catatan dari LocalStorage.
+ * Mengembalikan array kosong jika belum ada data atau terjadi error.
+ *
+ * @return {Array} Array objek catatan
+ */
+function getNotesFromStorage() {
+    try {
+        return JSON.parse(localStorage.getItem(PASSLOG_KEY)) || [];
+    } catch {
+        return [];
+    }
+}
+
+/**
+ * saveNotesToStorage(notes)
+ * ─────────────────────────
+ * Menyimpan array catatan ke LocalStorage sebagai JSON string.
+ *
+ * @param {Array} notes - Array objek catatan yang akan disimpan
+ */
+function saveNotesToStorage(notes) {
+    localStorage.setItem(PASSLOG_KEY, JSON.stringify(notes));
+}
+
+
+/* ── INISIALISASI: render catatan saat halaman dimuat ──────────────── */
+/*
+   Menggunakan DOMContentLoaded terpisah agar tidak menimpa
+   DOMContentLoaded yang sudah ada (displayNotes di script.js).
+   Keduanya akan berjalan bersamaan tanpa konflik.
+*/
+document.addEventListener('DOMContentLoaded', function () {
+    renderNotes(); // Muat catatan dari LocalStorage ke panel saat halaman siap
+});
