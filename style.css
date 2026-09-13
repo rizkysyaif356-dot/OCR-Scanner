@@ -279,6 +279,73 @@ table { width: 100%; border-collapse: collapse; background: rgba(255,255,255,0.0
 th { background: #1b4d3e; color: #2ecc71; text-align: left; padding: 12px; }
 td { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 13px; }
 
+/* --- PELENGKAP OPERASIONAL: Tabel jadi Kartu di HP (biar ikut lebar layar ponsel) --- */
+@media screen and (max-width: 768px) {
+    #pelengkap .table-container table,
+    #pelengkap .table-container tbody,
+    #pelengkap .table-container tr,
+    #pelengkap .table-container td {
+        display: block;
+        width: 100% !important;
+    }
+
+    /* Header kolom (Kendala/Penjelasan/Aksi) disembunyikan, diganti label per-baris */
+    #pelengkap .table-container thead {
+        display: none;
+    }
+
+    #pelengkap .table-container tbody tr {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        margin-bottom: 12px;
+        padding: 12px;
+    }
+
+    #pelengkap .table-container tbody td {
+        padding: 6px 0;
+        border-bottom: none;
+    }
+
+    /* Label otomatis sesuai urutan kolom asli (dilewati untuk baris "Memuat data.../Gagal") */
+    #pelengkap .table-container tbody td:not([colspan]):nth-of-type(1)::before {
+        content: "Kendala";
+        display: block;
+        font-size: 10px;
+        font-weight: bold;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        color: var(--primary-gold);
+        margin-bottom: 4px;
+    }
+
+    #pelengkap .table-container tbody td:not([colspan]):nth-of-type(2)::before {
+        content: "Penjelasan";
+        display: block;
+        font-size: 10px;
+        font-weight: bold;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        color: var(--primary-gold);
+        margin-bottom: 4px;
+    }
+
+    #pelengkap .table-container tbody td:not([colspan]):nth-of-type(3) {
+        margin-top: 6px;
+    }
+
+    #pelengkap .table-container tbody td:not([colspan]):nth-of-type(3) .btn-copy-table {
+        width: 100%;
+        padding: 10px;
+        font-size: 13px;
+    }
+
+    #pelengkap .table-container tbody td[colspan] {
+        text-align: center !important;
+        padding: 12px;
+    }
+}
+
 .btn-copy-table { background: #3498db; color: white; padding: 5px 10px; font-size: 11px; border-radius: 4px; border: none; cursor: pointer; }
 .btn-delete { background: #e74c3c; color: white; width: 100%; margin-top: 10px; font-size: 11px; padding: 8px; border-radius: 5px; border: none; cursor: pointer; }
 

@@ -78,103 +78,6 @@ setInterval(() => {
 }, 1000);
 });
 
-// --- KONFIGURASI LOGIN ---
-const VALID_USER = "master";  // ID yang benar
-const VALID_PASS = "1";   // Password yang benar
-
-function attemptLogin() {
-    const idInput = document.getElementById('login-id');
-    const passInput = document.getElementById('login-pass');
-    const btnLogin = document.getElementById('btn-login');
-    const loader = document.getElementById('loader-koneksi');
-    const loginForm = document.querySelector('.login-form');
-
-    if (idInput.value === VALID_USER && passInput.value === VALID_PASS) {
-        
-        // 1. Tampilkan Alert Sukses Terlebih Dahulu
-        Swal.fire({
-            title: 'ACCESS GRANTED',
-            text: 'Identitas terverifikasi. Menghubungkan ke server...',
-            icon: 'success',
-            background: '#1a1a1a',
-            color: '#fff',
-            showConfirmButton: false,
-            timer: 2000, // Alert tampil selama 2 detik
-            timerProgressBar: true
-        }).then(() => {
-            // 2. SETELAH ALERT SELESAI, Tampilkan Loading Screen
-            if(loginForm) loginForm.style.display = 'none'; // Sembunyikan form
-            if(loader) loader.style.display = 'block';     // Munculkan progress bar
-            
-            // 3. Jalankan proses loading (2 detik) lalu masuk sistem
-            setTimeout(() => {
-                lanjutkanKeSistem();
-            }, 2000);
-        });
-
-    } else {
-        // --- JIKA GAGAL ---
-        Swal.fire({
-            title: 'ACCESS DENIED',
-            text: 'ID Agen atau Passcode salah!',
-            icon: 'error',
-            background: '#1a1a1a',
-            color: '#fff',
-            confirmButtonColor: '#f1c40f'
-        });
-        
-        // Efek shake pada input
-        const inputs = document.querySelectorAll('.input-group input');
-        inputs.forEach(input => {
-            input.classList.add('error-shake');
-            setTimeout(() => input.classList.remove('error-shake'), 500);
-        });
-    }
-}
-
-// Fungsi Penghubung ke Logic Lama (Absensi & Scanner)
-function lanjutkanKeSistem() {
-    const overlay = document.getElementById('welcome-overlay');
-    
-    // Efek menghilang
-    overlay.style.opacity = '0';
-    overlay.style.pointerEvents = 'none';
-
-    setTimeout(() => {
-        overlay.style.display = 'none';
-
-        // --- MASUK KE LOGIKA ABSENSI ANDA YANG SEBELUMNYA ---
-        const today = new Date().toDateString();
-        const lastAbsen = localStorage.getItem('lastAbsenDate');
-
-        if (lastAbsen === today) {
-            // Jika sudah absen hari ini -> Langsung ke Scanner
-            showSection('scanner');
-            // Pastikan sidebar terbuka
-            document.querySelectorAll('.menu-item.locked').forEach(item => {
-                item.classList.remove('locked');
-                item.style.pointerEvents = 'auto';
-                item.style.filter = 'none';
-                item.style.opacity = '1';
-            });
-        } else {
-            // Jika belum absen -> Ke halaman Absen
-            showSection('absensi');
-        }
-    }, 800);
-}
-
-// Tambahan: Tekan Enter untuk Login
-document.addEventListener('keydown', function(event) {
-    if (event.key === "Enter") {
-        // Cek apakah overlay masih tampil
-        const overlay = document.getElementById('welcome-overlay');
-        if (overlay && overlay.style.display !== 'none') {
-            attemptLogin();
-        }
-    }
-});
-
 function selesaikanAbsen() {
     const btn = document.querySelector('.btn-absen');
     const today = new Date().toDateString();
@@ -287,15 +190,15 @@ async function fetchPelengkap() {
         
         data.forEach(item => {
             tableBody.innerHTML += `<tr>
-                <td style="vertical-align: middle;"><b style="color:#2ecc71">${item.kendala}</b></td>
+                <td style="vertical-align: middle;"><b style="color:#2ecc71">${escapeHtml(item.kendala)}</b></td>
                 <td>
                     <div style="max-height: 100px; overflow-y: auto; font-size: 12px; line-height: 1.4; color: #ecf0f1;">
-                        ${item.penjelasan}
+                        ${escapeHtml(item.penjelasan)}
                     </div>
                 </td>
                 <td style="vertical-align: middle; text-align: center;">
-                    <button class="btn-copy-table" 
-                        onclick="copyText(\`${item.penjelasan.replace(/"/g, '&quot;')}\`, this)">
+                    <button class="btn-copy-table" data-copy="${escapeHtml(item.penjelasan)}"
+                        onclick="copyText(this.dataset.copy, this)">
                         Copy
                     </button>
                 </td>
@@ -320,19 +223,19 @@ async function fetchKesalahan() {
         
         data.forEach(item => {
             const ssContent = item.ss ? item.ss.toString() : "";
-            
+
             tableBody.innerHTML += `
             <tr style="font-size: 11px;">
-                <td>${item.tanggal || '-'}</td>
-                <td>${item.nama || '-'}</td>
+                <td>${escapeHtml(item.tanggal || '-')}</td>
+                <td>${escapeHtml(item.nama || '-')}</td>
                 <td style="text-align: center;">
                     ${ssContent ? `
-                        <button class="btn-copy-table" onclick="copyText(\`${ssContent.replace(/"/g, '&quot;')}\`, this)">
+                        <button class="btn-copy-table" data-copy="${escapeHtml(ssContent)}" onclick="copyText(this.dataset.copy, this)">
                             <i class="fas fa-copy"></i>
                         </button>
                     ` : '-'}
                 </td>
-                <td style="color: var(--primary-gold); font-weight: bold;">${item.jenis || '-'}</td>
+                <td style="color: var(--primary-gold); font-weight: bold;">${escapeHtml(item.jenis || '-')}</td>
                 </tr>`;
         });
     } catch (e) { 
@@ -437,16 +340,6 @@ async function runOcr(file) {
             await fetch(GAS_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: 'clear' }) });
             alert("History dibersihkan!");
         } catch (e) { console.error("Cloud clear failed"); }
-    }
-
-    // --- KALKULATOR ---
-    let calcInput = "";
-    function inputCalc(v) { calcInput += v; document.getElementById('calcDisplay').value = calcInput; }
-    function clearCalc() { calcInput = ""; document.getElementById('calcDisplay').value = ""; }
-    function delCalc() { calcInput = calcInput.slice(0,-1); document.getElementById('calcDisplay').value = calcInput; }
-    function calculateResult() {
-        try { calcInput = eval(calcInput).toString(); document.getElementById('calcDisplay').value = calcInput; }
-        catch { document.getElementById('calcDisplay').value = "Error"; calcInput = ""; }
     }
 
     // Event Listeners
@@ -604,29 +497,6 @@ resultsArea.innerHTML = results.map(res => `
 
     window.onload = renderHistory;
     
-    // Fungsi AI Sederhana untuk membersihkan teks hasil scan
-// Fungsi Smart Fix yang aman
-function aiSmartFix(text) {
-    try {
-        // Cek apakah TensorFlow sudah siap
-        if (typeof tf !== 'undefined') {
-            console.log("AI sedang memproses...");
-            // Logika pembersihan teks
-            return text.replace(/O/g, '0')
-                       .replace(/[Il]/g, '1')
-                       .replace(/S/g, '5')
-                       .replace(/B/g, '8')
-                       .replace(/\D/g, '');
-        } else {
-            // Jika AI belum siap, gunakan pembersihan standar (tanpa bikin error)
-            return text.replace(/\D/g, '');
-        }
-    } catch (error) {
-        console.error("AI Error:", error);
-        return text.replace(/\D/g, ''); // Tetap kembalikan angka standar jika AI gagal
-    }
-}
-
 function changeTheme(element) {
     const newBg = element.getAttribute('data-bg');
     const defaultBg = "https://i.imgur.com/ydxRdvB.gif";
@@ -653,39 +523,6 @@ function changeTheme(element) {
         img.style.borderColor = "var(--primary-gold)";
     });
     element.querySelector('img').style.borderColor = "var(--success-green)";
-}
-
-let lastProcessedCode = ""; // Untuk mencegah duplikat ke Sheets
-
-// Gunakan variabel ini di bagian paling atas script Anda
-let lastSentCode = ""; 
-
-function saveToCloud(code) {
-    // Validasi: Jangan kirim jika kode kosong atau sama dengan yang barusan
-    if (!code || code === lastSentCode) return;
-
-    const scriptURL = 'AKfycbyrDyClaulM917fSvOPEP4pTOkZo4ZOrAkt';
-    
-    // Siapkan data dalam format FormData (lebih disukai oleh Google Apps Script)
-    const formData = new URLSearchParams();
-    formData.append('ticketCode', code);
-    formData.append('timestamp', new Date().toLocaleString('id-ID'));
-
-    fetch(scriptURL, {
-        method: 'POST',
-        mode: 'no-cors', // Menghindari masalah kebijakan keamanan kantor
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: formData.toString()
-    })
-    .then(() => {
-        console.log("Data berhasil dikirim ke antrian cloud");
-        lastSentCode = code; // Tandai sudah terkirim
-    })
-    .catch(err => {
-        console.error("Gagal terhubung ke Google Sheets:", err);
-    });
 }
 
 let lastSavedCode = ""; // Anti-Duplicate
@@ -738,33 +575,10 @@ window.addEventListener('load', function() {
         showSection('absensi');
     }
 
-    // 3. Update Jam & Tanggal agar tetap jalan
-    updateDateTime();
 });
-
-// Pastikan fungsi showSection Anda seperti ini agar CSS display-nya berubah
-function showSection(id) {
-    // Sembunyikan semua section terlebih dahulu
-    document.querySelectorAll('.content-section').forEach(s => {
-        s.classList.remove('active');
-        s.style.display = 'none'; 
-    });
-
-    // Tampilkan section yang dipilih
-    const target = document.getElementById(id);
-    if (target) {
-        target.classList.add('active');
-        target.style.display = 'block'; // Ini yang akan menghilangkan kondisi blank
-    }
-}
-
 
 function toggleChat() {
     document.getElementById('ai-chat-window').classList.toggle('chat-hidden');
-}
-
-function handleKeyPress(e) {
-    if (e.key === 'Enter') sendMessage();
 }
 
 // Load catatan saat halaman dibuka
@@ -856,11 +670,6 @@ function clearNotes() {
             });
         }
     });
-}
-
-function toggleChat() {
-    const windowEl = document.getElementById('ai-chat-window');
-    windowEl.classList.toggle('chat-hidden');
 }
 
 // --- LOGIKA LOGOUT & ABSEN KELUAR ---
